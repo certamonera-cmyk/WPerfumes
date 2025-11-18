@@ -5,7 +5,7 @@ git add -A
 git commit -m "Remove Admin Tab, Automate product addition in Admin Panel"
 git push origin master
 
-## 1 Paypal Auth
+
 ##  chmod +x ./run-local.sh
 ## ./run-local.sh
 AfTRhyp1ftl9u6Cy6Tz6HT8bLlnH3YKaoLgLkw6xLAJkEtOz-dCKVzmyVqwVHZ2uCU6Jrm6zV3L8C06f
@@ -13,7 +13,7 @@ ENfQY0jGTzefs-TaMLsfQa20ILEsxmzoNl8mYGK_fMbpDomqZwuSKKaLJo6teHA4HZpJ6qAvXD582LTZ
 
 
 #Push changes to github
-## 1 https://github.com/cyrussimba/WPerfumes
+## 1 https://github.com/tulusehai-oss/WPerfumes
 
 cd /Users/Makori/Desktop/WPerfumes
 
@@ -25,9 +25,9 @@ fi
 
 # 3 make sure origin points to the correct repo (add origin if missing)
 if git remote | grep -q '^origin$'; then
-  git remote set-url origin https://github.com/cyrussimba/WPerfumes.git
+  git remote set-url origin https://github.com/tulusehai-oss/WPerfumes.git
 else
-  git remote add origin https://github.com/cyrussimba/WPerfumes.git
+  git remote add origin https://github.com/tulusehai-oss/WPerfumes.git
 fi
 
 # 4 get current branch name
@@ -92,7 +92,7 @@ WPerfumes/
 
 1. **Clone the repository:**
    ```sh
-   git clone https://github.com/yourusername/WPerfumes.git
+   git clone https://github.com/tulusehai-oss/WPerfumes.git
    cd WPerfumes
    ```
 
@@ -171,4 +171,4 @@ MIT License
 
 ## Author
 
-- [Makori](https://github.com/cyrussimba)
+- [Mtulusehai-oss](https://github.com/tulusehai-oss)
