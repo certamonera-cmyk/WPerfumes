@@ -3,3 +3,21 @@ instance/
 *.pyc
 *.db
 .env
+.venv/
+venv/
+# Local runtime logs
+flask.out
+flask.log
+flask_startup.log
+
+# Backups and DB dumps
+backups/
+wperfumes_backup_*.sql
+
+# Editor/temp files
+*.bak
+
+# Local config / secrets
+client-config.json
+paypal-oauth.json
+create-order.json
