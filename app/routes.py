@@ -651,7 +651,11 @@ def add_order():
         "customer_address") or data.get("address") or ""
     product_id = data.get("product_id") or ""
     product_title = data.get("product_title") or data.get("product") or ""
-    quantity = int(data.get("quantity") or data.get("qty") or 1)
+    # Accept both 'quantity' and 'qty' (fallback to 1)
+    try:
+        quantity = int(data.get("quantity") or data.get("qty") or 1)
+    except Exception:
+        quantity = 1
     status = data.get("status", "Pending")
     payment_method = data.get("payment_method", "Cash on Delivery")
     date = data.get("date", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
@@ -667,8 +671,20 @@ def add_order():
         payment_method=payment_method,
         date=date
     )
-    db.session.add(order)
-    db.session.commit()
+
+    # Safely persist the order and return helpful JSON on failure
+    try:
+        db.session.add(order)
+        db.session.commit()
+    except Exception as e:
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
+        current_app.logger.exception("Failed to create order: %s", e)
+        # Return JSON error with detail string so the client can display useful debug info
+        return jsonify({"error": "order_create_failed", "detail": str(e)}), 500
+
     # === EMAIL FEATURE: Send confirmation email after saving ===
     email_body = f"""
 Hi {customer_name},

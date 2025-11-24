@@ -67,7 +67,7 @@ Press CTRL+C to quit
 127.0.0.1 - - [26/Oct/2025 18:47:22] "GET /static/js/paypal.js HTTP/1.1" 304 -
 127.0.0.1 - - [26/Oct/2025 18:47:23] "GET /static/js/hero-audio.js HTTP/1.1" 304 -
 127.0.0.1 - - [26/Oct/2025 18:47:23] "GET /static/js/hero-enhance.js HTTP/1.1" 304 -
-127.0.0.1 - - [26/Oct/2025 18:47:23] "GET /static/audio/hero1.mp3 HTTP/1.1" 404 -
+127.0.0.1 - - [26/Oct/2025 18:47:23] "GET /static/audio/hero.mp3 HTTP/1.1" 404 -
 127.0.0.1 - - [26/Oct/2025 18:47:24] "GET /api/top-picks HTTP/1.1" 200 -
 127.0.0.1 - - [26/Oct/2025 18:47:25] "GET /api/settings/checkout_discount HTTP/1.1" 200 -
 127.0.0.1 - - [26/Oct/2025 18:47:26] "GET /api/settings/checkout_discount HTTP/1.1" 200 -
@@ -191,7 +191,7 @@ Press CTRL+C to quit
 127.0.0.1 - - [26/Oct/2025 18:54:05] "GET /static/js/paypal.js HTTP/1.1" 304 -
 127.0.0.1 - - [26/Oct/2025 18:54:05] "GET /static/js/hero-audio.js HTTP/1.1" 304 -
 127.0.0.1 - - [26/Oct/2025 18:54:05] "GET /static/js/hero-enhance.js HTTP/1.1" 304 -
-127.0.0.1 - - [26/Oct/2025 18:54:06] "GET /static/audio/hero1.mp3 HTTP/1.1" 404 -
+127.0.0.1 - - [26/Oct/2025 18:54:06] "GET /static/audio/hero.mp3 HTTP/1.1" 404 -
 127.0.0.1 - - [26/Oct/2025 18:54:07] "GET /api/top-picks HTTP/1.1" 200 -
 127.0.0.1 - - [26/Oct/2025 18:54:08] "GET /api/settings/checkout_discount HTTP/1.1" 200 -
 127.0.0.1 - - [26/Oct/2025 18:54:08] "GET /api/brands HTTP/1.1" 200 -
@@ -379,7 +379,7 @@ Press CTRL+C to quit
 127.0.0.1 - - [26/Oct/2025 19:29:57] "GET /static/js/paypal.js HTTP/1.1" 304 -
 127.0.0.1 - - [26/Oct/2025 19:29:57] "GET /static/js/hero-audio.js HTTP/1.1" 304 -
 127.0.0.1 - - [26/Oct/2025 19:29:57] "GET /static/js/hero-enhance.js HTTP/1.1" 304 -
-127.0.0.1 - - [26/Oct/2025 19:29:58] "GET /static/audio/hero1.mp3 HTTP/1.1" 404 -
+127.0.0.1 - - [26/Oct/2025 19:29:58] "GET /static/audio/hero.mp3 HTTP/1.1" 404 -
 127.0.0.1 - - [26/Oct/2025 19:29:59] "GET /api/top-picks HTTP/1.1" 200 -
 127.0.0.1 - - [26/Oct/2025 19:29:59] "GET /api/settings/checkout_discount HTTP/1.1" 200 -
 127.0.0.1 - - [26/Oct/2025 19:29:59] "GET /api/brands HTTP/1.1" 200 -
@@ -476,7 +476,7 @@ Press CTRL+C to quit
 127.0.0.1 - - [26/Oct/2025 19:34:54] "GET /static/js/paypal.js HTTP/1.1" 304 -
 127.0.0.1 - - [26/Oct/2025 19:34:54] "GET /static/js/hero-audio.js HTTP/1.1" 304 -
 127.0.0.1 - - [26/Oct/2025 19:34:54] "GET /static/js/hero-enhance.js HTTP/1.1" 304 -
-127.0.0.1 - - [26/Oct/2025 19:34:55] "GET /static/audio/hero1.mp3 HTTP/1.1" 404 -
+127.0.0.1 - - [26/Oct/2025 19:34:55] "GET /static/audio/hero.mp3 HTTP/1.1" 404 -
 127.0.0.1 - - [26/Oct/2025 19:34:55] "GET /api/top-picks HTTP/1.1" 200 -
 127.0.0.1 - - [26/Oct/2025 19:34:56] "GET /api/brands HTTP/1.1" 200 -
 127.0.0.1 - - [26/Oct/2025 19:34:57] "GET /api/settings/checkout_discount HTTP/1.1" 200 -
@@ -704,7 +704,7 @@ Press CTRL+C to quit
 127.0.0.1 - - [26/Oct/2025 19:37:48] "GET /static/js/paypal.js HTTP/1.1" 304 -
 127.0.0.1 - - [26/Oct/2025 19:37:48] "GET /static/js/hero-audio.js HTTP/1.1" 304 -
 127.0.0.1 - - [26/Oct/2025 19:37:49] "GET /static/js/hero-enhance.js HTTP/1.1" 304 -
-127.0.0.1 - - [26/Oct/2025 19:37:49] "GET /static/audio/hero1.mp3 HTTP/1.1" 404 -
+127.0.0.1 - - [26/Oct/2025 19:37:49] "GET /static/audio/hero.mp3 HTTP/1.1" 404 -
 127.0.0.1 - - [26/Oct/2025 19:37:49] "GET /api/top-picks HTTP/1.1" 200 -
 127.0.0.1 - - [26/Oct/2025 19:37:51] "GET /api/settings/checkout_discount HTTP/1.1" 200 -
 127.0.0.1 - - [26/Oct/2025 19:37:51] "GET /api/products HTTP/1.1" 200 -
@@ -795,7 +795,7 @@ Press CTRL+C to quit
 127.0.0.1 - - [26/Oct/2025 19:48:47] "GET /static/js/hero-enhance.js HTTP/1.1" 304 -
 127.0.0.1 - - [26/Oct/2025 19:48:47] "GET /static/js/hero-audio.js HTTP/1.1" 200 -
 127.0.0.1 - - [26/Oct/2025 19:48:47] "GET /static/js/men.js HTTP/1.1" 304 -
-127.0.0.1 - - [26/Oct/2025 19:48:48] "GET /static/audio/hero1.mp3 HTTP/1.1" 404 -
+127.0.0.1 - - [26/Oct/2025 19:48:48] "GET /static/audio/hero.mp3 HTTP/1.1" 404 -
 127.0.0.1 - - [26/Oct/2025 19:49:01] "GET /price-comparison HTTP/1.1" 200 -
 127.0.0.1 - - [26/Oct/2025 19:49:01] "GET /static/css/price_comparison.css HTTP/1.1" 200 -
 127.0.0.1 - - [26/Oct/2025 19:49:01] "GET /static/css/main.css HTTP/1.1" 304 -
@@ -878,7 +878,7 @@ Press CTRL+C to quit
 127.0.0.1 - - [26/Oct/2025 19:49:31] "GET /static/js/paypal.js HTTP/1.1" 304 -
 127.0.0.1 - - [26/Oct/2025 19:49:31] "GET /static/js/hero-audio.js HTTP/1.1" 304 -
 127.0.0.1 - - [26/Oct/2025 19:49:31] "GET /static/js/hero-enhance.js HTTP/1.1" 304 -
-127.0.0.1 - - [26/Oct/2025 19:49:31] "GET /static/audio/hero1.mp3 HTTP/1.1" 404 -
+127.0.0.1 - - [26/Oct/2025 19:49:31] "GET /static/audio/hero.mp3 HTTP/1.1" 404 -
 127.0.0.1 - - [26/Oct/2025 19:49:32] "GET /api/top-picks HTTP/1.1" 200 -
 127.0.0.1 - - [26/Oct/2025 19:49:32] "GET /favicon.ico HTTP/1.1" 204 -
 127.0.0.1 - - [26/Oct/2025 19:49:33] "GET /api/settings/checkout_discount HTTP/1.1" 200 -
@@ -925,7 +925,7 @@ Press CTRL+C to quit
 127.0.0.1 - - [26/Oct/2025 19:50:12] "GET /static/js/paypal.js HTTP/1.1" 304 -
 127.0.0.1 - - [26/Oct/2025 19:50:12] "GET /static/js/hero-audio.js HTTP/1.1" 304 -
 127.0.0.1 - - [26/Oct/2025 19:50:12] "GET /static/js/hero-enhance.js HTTP/1.1" 304 -
-127.0.0.1 - - [26/Oct/2025 19:50:14] "GET /static/audio/hero1.mp3 HTTP/1.1" 404 -
+127.0.0.1 - - [26/Oct/2025 19:50:14] "GET /static/audio/hero.mp3 HTTP/1.1" 404 -
 127.0.0.1 - - [26/Oct/2025 19:50:15] "GET /api/top-picks HTTP/1.1" 200 -
 127.0.0.1 - - [26/Oct/2025 19:50:15] "GET /api/settings/checkout_discount HTTP/1.1" 200 -
 127.0.0.1 - - [26/Oct/2025 19:50:15] "GET /api/brands HTTP/1.1" 200 -

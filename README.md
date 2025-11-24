@@ -3,6 +3,15 @@
 [Project repository](https://github.com/tulusehai-oss/WPerfumes)
 
 ---
+Paypal
+
+##  chmod +x ./run-local.sh
+## ./run-local.sh
+Client ID:Aex5V6cd5gPmzyKIQ48BSM6iqwfpcZh_8YtxE_Dtn-F5txEJ1q4aaYguPAah098_VIAg6G5JnXJEZT3v
+Secret: EPsB0GYPkOvjjX4obDvJDjnHmcr2M5U9NsmRS3udNXj1eMDYFgS2V9zEgPE3nduhzC2aNLtLC00PrjFw
+
+
+
 
 ## Features
 

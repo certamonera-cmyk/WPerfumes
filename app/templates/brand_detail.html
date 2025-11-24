@@ -287,7 +287,7 @@
         <div id="checkoutModalContent" class="cart-modal-content" role="dialog" aria-modal="true" aria-label="Checkout">
             <button id="checkoutModalCloseBtn" aria-label="Close checkout" class="cart-modal-close">✕</button>
             <h2>Checkout</h2>
-            <div id="checkoutDiscountInfo" class="discount-info" style="display:none;"></div>
+            <div id="checkoutDiscountInfo" class="discount-info" style="display:none"></div>
             <div id="cartSection" aria-live="polite"></div>
             <div id="paymentSelectWrapper" style="display:block;margin-top:12px;">
                 <label class="payment-dropdown-label">Select Payment Method</label>
@@ -349,9 +349,9 @@
         <div class="footer-bottom">&copy; WPerfumes</div>
     </footer>
 
-    <!-- PayPal SDK (sandbox client-id; safe on client side) -->
+    <!-- PayPal SDK (uses server-provided client id and currency) -->
     <script
-        src="https://www.paypal.com/sdk/js?client-id=AfTRhyp1ftl9u6Cy6Tz6HT8bLlnH3YKaoLgLkw6xLAJkEtOz-dCKVzmyVqwVHZ2uCU6Jrm6zV3L8C06f&currency=USD"></script>
+        src="https://www.paypal.com/sdk/js?client-id={{ PAYPAL_CLIENT_ID }}&currency={{ PAYPAL_CURRENCY }}"></script>
     <!-- Client PayPal helper that the rest of the app expects -->
     <script src="{{ url_for('static', filename='js/paypal.js') }}"></script>
 
@@ -493,7 +493,7 @@
                         productPayPalContainer.style.display = 'block';
                         // call the helper to render buttons into the container
                         // keep args consistent with other uses in the app
-                        window.renderPayPalButtons('#product_paypal_button_container', { currency: 'USD', successUrl: '/' });
+                        window.renderPayPalButtons('#product_paypal_button_container', { currency: '{{ PAYPAL_CURRENCY }}', successUrl: '/' });
                     } else {
                         // If no helper, the checkout modal will still render PayPal (modal_paypal_button_container)
                         productPayPalContainer.style.display = 'none';
@@ -549,8 +549,6 @@
                 // and let the user continue there. This keeps the PayPal UI hidden until a purchase action occurs.
                 if (typeof window.renderPayPalButtons === 'function') {
                     showProductPayPalButtons();
-                    // Prefer card checkout helper if provided — but rendering PayPal gives user the visible button as requested.
-                    // Proceed to fallback only if initiateCardCheckout isn't available.
                 }
 
                 const customerObj = { name: '', email: '', phone: '', address: '' };
@@ -579,7 +577,6 @@
                 if (typeof window.initiateCardCheckout === 'function') {
                     try {
                         await window.initiateCardCheckout([item], { currency: 'USD', returnUrl: window.location.origin + '/paypal/return' });
-                        // If the helper redirects, code execution will stop here as browser navigates to PayPal.
                     } catch (err) {
                         console.error('initiateCardCheckout error', err);
                         const detail = (err && err.message) ? err.message : String(err);

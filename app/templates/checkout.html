@@ -258,17 +258,9 @@
         </div>
     </div>
 
-    <!--
-      PayPal SDK (sandbox client id).
-      NOTE: The PayPal SECRET MUST NEVER be included in client-side HTML or JS.
-      Set PAYPAL_CLIENT_ID and PAYPAL_SECRET as environment variables on the server and
-      configure payments_paypal.py to read them (PAYPAL_SECRET used only server-side).
-    -->
-
-    <!-- Replaced placeholder with your sandbox client-id (copied from cart.html) -->
+    <!-- PayPal SDK (uses server-provided client id and currency) -->
     <script
-        src="https://www.paypal.com/sdk/js?client-id=AfTRhyp1ftl9u6Cy6Tz6HT8bLlnH3YKaoLgLkw6xLAJkEtOz-dCKVzmyVqwVHZ2uCU6Jrm6zV3L8C06f&currency=USD"></script>
-
+        src="https://www.paypal.com/sdk/js?client-id={{ PAYPAL_CLIENT_ID }}&currency={{ PAYPAL_CURRENCY }}"></script>
     <script src="{{ url_for('static', filename='js/paypal.js') }}"></script>
 
     <script>
@@ -380,10 +372,8 @@
                     return;
                 }
                 availablePromos = await res.json();
-                const today = new Date().toISOString().slice(0, 10);
                 let options = '<option value="">-- None --</option>';
                 availablePromos.forEach(p => {
-                    // use discount_value for percent when discount_type == 'percent'
                     let percent = 0;
                     if (p.discount_type === 'percent') {
                         percent = parseFloat(p.discount_value || 0) || 0;
@@ -403,12 +393,10 @@
                 const found = availablePromos.find(x => x.code === code);
                 const percent = found && found.discount_type === 'percent' ? (parseFloat(found.discount_value) || 0) : 0;
                 document.getElementById('promoMsg').innerText = percent > 0 ? `Promo will apply ${percent}% off.` : '';
-                // Re-render summary to reflect promo selection
                 renderCartSummary();
             });
         }
 
-        // Helper: set button visual & accessibility state
         function setButtonState(btn, enabled, reason) {
             if (!btn) return;
             btn.disabled = !enabled;
@@ -427,7 +415,6 @@
             }
         }
 
-        // Update button enabled/disabled and hint text based on payment selection + cart
         function updatePaymentButtonsStateCheckout() {
             const cart = getCart();
             const cartEmpty = !cart || !cart.length;
@@ -489,7 +476,6 @@
                 </tr>`;
             });
 
-            // apply global discount and optionally promo percent selected in the summary select
             const promoSelect = document.getElementById('promo_code_summary');
             let promoPercent = 0;
             if (promoSelect) {
@@ -604,7 +590,6 @@
                         orderMsg.innerHTML += `<div style="color:#c44;">Item ${i + 1}: ${r.message || 'Failed'}</div>`;
                     }
                 });
-                // re-sync
                 updatePaymentButtonsStateCheckout();
             } else {
                 orderMsg.innerHTML = `<div style="color:#27ae60;font-weight:700;">Thank you! Your orders were placed successfully.</div>`;
@@ -616,7 +601,6 @@
             }
         });
 
-        // Enhanced Buy Now handler with friendly guidance on PayPal failures
         async function handleBuyNowClick_checkout() {
             const customer = document.getElementById('customer').value || '';
             const email = document.getElementById('email').value || '';
@@ -634,7 +618,6 @@
 
             await logOrderAttemptsForCart('CheckedOut');
 
-            // Save customer and items for return page
             const customerObj = { name: customer, email: email, phone: phone, address: address };
             try { localStorage.setItem('paypal_customer', JSON.stringify(customerObj)); } catch (e) { /* ignore */ }
 
@@ -648,11 +631,9 @@
             }));
             try { localStorage.setItem('paypal_items', JSON.stringify(itemsForServer)); } catch (e) { /* ignore */ }
 
-            // Try to initiate PayPal card checkout using the helper in app/static/js/paypal.js
             if (typeof window.initiateCardCheckout === 'function') {
                 try {
                     await window.initiateCardCheckout(itemsForServer, { currency: 'USD', returnUrl: window.location.origin + '/paypal/return' });
-                    // If the helper redirects to PayPal, execution will not continue here.
                 } catch (err) {
                     console.error('initiateCardCheckout error', err);
                     const detail = (err && err.message) ? err.message : String(err);
@@ -668,7 +649,6 @@
                     updatePaymentButtonsStateCheckout();
                 }
             } else {
-                // No PayPal helper present (JS not loaded); show message and keep fallback behavior
                 orderMsg.innerHTML = '<div style="color:#e74c3c;font-weight:700;">Card checkout is not available on this page.</div>';
                 updatePaymentButtonsStateCheckout();
             }
@@ -682,22 +662,17 @@
         document.getElementById('paymentSelect').addEventListener('change', updatePaymentButtonsStateCheckout);
 
         (async function init() {
-            // ensure the automatic discount is loaded before rendering so totals reflect it immediately
             await fetchDiscountPercent();
             await loadActivePromos();
-            // ensure FX is fetched so USD equivalents display
             await fetchFX();
             renderCartSummary();
             updatePaymentButtonsStateCheckout();
 
-            // If the PayPal SDK loaded and the container exists, attempt to render PayPal buttons on load.
-            // Also safeguard against rendering into a hidden container; this page shows the container so immediate render is fine.
             try {
                 if (window.paypal && document.querySelector('#paypal-button-container')) {
-                    // Protect against double-render
                     const container = document.querySelector('#paypal-button-container');
                     if (!container.innerHTML.trim()) {
-                        renderPayPalButtons('#paypal-button-container', { currency: 'USD', successUrl: '/' });
+                        renderPayPalButtons('#paypal-button-container', { currency: '{{ PAYPAL_CURRENCY }}', successUrl: '/' });
                     }
                 }
             } catch (err) {
@@ -708,7 +683,6 @@
                 const prev = checkoutDiscountPercent;
                 await fetchDiscountPercent();
                 if (prev !== checkoutDiscountPercent) renderCartSummary();
-                // refresh FX too periodically
                 await fetchFX();
                 renderCartSummary();
             }, 30000);

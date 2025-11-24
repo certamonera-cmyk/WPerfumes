@@ -326,9 +326,9 @@
         </div>
     </div>
 
-    <!-- PayPal SDK (sandbox client id) -->
+    <!-- PayPal SDK (uses configured client id and currency) -->
     <script
-        src="https://www.paypal.com/sdk/js?client-id=AfTRhyp1ftl9u6Cy6Tz6HT8bLlnH3YKaoLgLkw6xLAJkEtOz-dCKVzmyVqwVHZ2uCU6Jrm6zV3L8C06f&currency=USD"></script>
+        src="https://www.paypal.com/sdk/js?client-id={{ PAYPAL_CLIENT_ID }}&currency={{ PAYPAL_CURRENCY }}"></script>
     <script src="{{ url_for('static', filename='js/paypal.js') }}"></script>
 
     <script>
@@ -417,7 +417,9 @@
             } catch (e) { return `$${Math.round(converted)}`; }
         }
 
-        // Fetch global discount percent from server (GET /api/settings/checkout_discount)
+        function getCart() { return JSON.parse(localStorage.getItem('cart') || '[]'); }
+        function saveCart(cart) { localStorage.setItem('cart', JSON.stringify(cart)); }
+
         async function fetchDiscountPercent() {
             try {
                 const r = await fetch(`${API}/settings/checkout_discount`);
@@ -446,7 +448,6 @@
             }
         }
 
-        // Load coupons from backend and populate promo select - use discount_value field
         async function loadActivePromosInto(selectElId = 'modal_promo_code') {
             try {
                 const res = await fetch(`${API}/coupons`);
@@ -462,15 +463,12 @@
 
             const promoSelect = document.getElementById(selectElId);
             if (!promoSelect) return;
-            const today = new Date().toISOString().slice(0, 10);
             let options = '<option value="">-- None --</option>';
             availablePromos.forEach(p => {
-                // backend returns discount_value and discount_type; treat discount_value as percent only if type == 'percent'
                 let percent = 0;
                 if (p.discount_type === 'percent') {
                     percent = parseFloat(p.discount_value || 0) || 0;
                 }
-                // store percent in data-percent attribute so selection handler can read it
                 options += `<option value="${p.code}" data-percent="${percent}">${p.code} ${p.description ? '(' + p.description + ')' : ''}</option>`;
             });
             promoSelect.innerHTML = options;
@@ -535,7 +533,6 @@
             }
         }
 
-        // Render main cart on page (now shows discounted total if auto-discount present)
         function renderCart() {
             cart = JSON.parse(localStorage.getItem('cart') || "[]");
             if (!cart || !cart.length) {
@@ -705,15 +702,11 @@
                     document.getElementById('checkoutBackdrop').setAttribute('aria-hidden', 'false');
 
                     // Render PayPal buttons now that the container is visible.
-                    // This avoids rendering inside display:none which can appear invisible.
                     try {
-                        // only render if paypal SDK is loaded and container exists
                         if (window.paypal && document.querySelector('#modal_paypal_button_container')) {
                             const container = document.querySelector('#modal_paypal_button_container');
-                            // avoid double-rendering by checking container content
                             if (!container.innerHTML.trim()) {
-                                // call the helper defined in static/js/paypal.js
-                                renderPayPalButtons('#modal_paypal_button_container', { currency: 'USD', successUrl: '/' });
+                                renderPayPalButtons('#modal_paypal_button_container', { currency: '{{ PAYPAL_CURRENCY }}', successUrl: '/' });
                             }
                         }
                     } catch (err) {
@@ -844,7 +837,6 @@
             }
         });
 
-        // Enhanced modal Buy Now handler with friendly guidance on PayPal failures
         async function handleModalBuyNow() {
             const customer = document.getElementById('modal_customer').value || '';
             const email = document.getElementById('modal_email').value || '';
@@ -861,7 +853,6 @@
 
             await logOrderAttemptsForCart('CheckedOut');
 
-            // persist customer/items for the return/capture flow
             const customerObj = { name: customer, email: email, phone: phone, address: address };
             try { localStorage.setItem('paypal_customer', JSON.stringify(customerObj)); } catch (e) { /* ignore */ }
 
@@ -906,10 +897,7 @@
         }
 
         (async function () {
-            // Ensure discount loaded before first render so totals reflect it
             await fetchDiscountPercent();
-
-            // Ensure FX loaded before first render of conversion text
             await fetchFX();
 
             const current = JSON.parse(localStorage.getItem('cart') || "[]");

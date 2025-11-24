@@ -54,6 +54,30 @@ function debounce(fn, wait) {
     };
 }
 
+/* ------------------------------
+   Price sanitization helper
+   ------------------------------
+   Removes currency symbols, grouping commas and whitespace,
+   keeps digits, decimal point and optional leading minus.
+   Normalizes multiple decimal points by keeping the first.
+*/
+function sanitizePriceString(raw) {
+    if (raw === null || raw === undefined) return '';
+    let s = String(raw).trim();
+    // Remove common currency symbols, non-breaking space and grouping commas
+    s = s.replace(/[\u00A0\s,£$€¥₹]/g, '');
+    // Keep only digits, dot and minus sign (everything else removed)
+    s = s.replace(/[^0-9.\-]/g, '');
+    // Normalize multiple dots: keep first dot, join remaining to fraction
+    const parts = s.split('.');
+    if (parts.length > 2) {
+        s = parts.shift() + '.' + parts.join('');
+    }
+    // Avoid bare '-' or '.' values
+    if (s === '-' || s === '.' || s === '' || s === '-.') return '';
+    return s;
+}
+
 function adminNotify(msg, type = 'info', timeout = 2500) {
     const containerId = 'adminNotifyContainer';
     let cont = el(containerId);
@@ -470,11 +494,12 @@ async function loadProducts() {
                 let thumbs = p.thumbnails.split(',').map(s => s.trim()).filter(s => s);
                 thumbs.slice(0, 3).forEach(u => thumbnailImgs += `<img src="${toStaticUrl(u)}" style="height:28px;border-radius:4px;margin-right:4px;" alt="thumb">`);
             }
+            const priceVal = (typeof p.price !== 'undefined' && p.price !== null && isFinite(Number(p.price))) ? Number(p.price).toFixed(2) : '0.00';
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${escapeHtml(p.title)}</td>
                 <td>${escapeHtml(p.brand)}</td>
-                <td>$${Number(p.price || 0).toFixed(2)}</td>
+                <td>$${priceVal}</td>
                 <td>${escapeHtml(p.status || '')}</td>
                 <td>${typeof p.quantity === 'number' ? p.quantity : 0}</td>
                 <td>${escapeHtml(p.tags || '')}</td>
@@ -578,7 +603,13 @@ function showProductModal(product) {
         q('#productFormModal').onsubmit = async function (e) {
             e.preventDefault();
             const formData = Object.fromEntries(new FormData(e.target).entries());
-            formData.price = parseFloat(formData.price) || 0.0;
+
+            // Sanitize price input so admin can type "$12", "£12", "1,299" etc.
+            const rawPrice = formData.price;
+            const cleanedPriceStr = sanitizePriceString(rawPrice);
+            const parsedPrice = (cleanedPriceStr !== '') ? parseFloat(cleanedPriceStr) : NaN;
+            formData.price = (Number.isFinite(parsedPrice) && !Number.isNaN(parsedPrice)) ? parsedPrice : 0.0;
+
             formData.quantity = parseInt(formData.quantity, 10) || 0;
             try {
                 let res;
@@ -642,12 +673,14 @@ async function loadHomepageProducts() {
 
         items.forEach(hp => {
             const idVal = escapeHtmlAttr(hp.id || hp._id || '');
+            // Guard price display so bad stored values don't break rendering
+            const priceDisplay = (typeof hp.price !== 'undefined' && hp.price !== null && isFinite(Number(hp.price))) ? ('$' + Number(hp.price).toFixed(2)) : '';
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${escapeHtml(hp.section || '')}</td>
                 <td>${escapeHtml(hp.title || '')}</td>
                 <td>${escapeHtml(hp.brand || '')}</td>
-                <td>${(typeof hp.price !== 'undefined' && hp.price !== null) ? ('$' + Number(hp.price).toFixed(2)) : ''}</td>
+                <td>${priceDisplay}</td>
                 <td>${escapeHtml(String(hp.sort || ''))}</td>
                 <td>${hp.visible ? 'Yes' : 'No'}</td>
                 <td class="action">
@@ -698,7 +731,7 @@ async function showHomepageModal(hp) {
     const currentProductId = hp ? (hp.product_id || hp.productId || '') : '';
     const currentBrand = hp ? (hp.brand || '') : '';
     const currentTitle = hp ? (hp.title || '') : '';
-    const currentPrice = (hp && typeof hp.price !== 'undefined' && hp.price !== null) ? hp.price : '';
+    const currentPrice = (hp && typeof hp.price !== 'undefined' && hp.price !== null && isFinite(Number(hp.price))) ? hp.price : '';
     const currentSort = hp && typeof hp.sort !== 'undefined' ? Number(hp.sort) : 0;
     const currentVisible = hp ? !!hp.visible : true;
 
@@ -731,7 +764,7 @@ async function showHomepageModal(hp) {
             <input name="product_id" id="hp_product_id" readonly value="${escapeHtmlAttr(currentProductId)}">
 
             <label>Price (optional - auto-filled but editable)</label>
-            <input name="price" id="hp_price" type="number" step="0.01" min="0" value="${escapeHtmlAttr(currentPrice !== '' ? String(currentPrice) : '')}">
+            <input name="price" id="hp_price" type="text" value="${escapeHtmlAttr(currentPrice !== '' ? String(currentPrice) : '')}">
 
             <label>Sort</label>
             <input name="sort" type="number" value="${escapeHtmlAttr(String(currentSort))}">
@@ -836,12 +869,18 @@ async function showHomepageModal(hp) {
         const selectedPid = (productSelect && productSelect.value) ? productSelect.value : (fd.get('product_id') || '');
         const selectedProduct = selectedPid ? findProductInListById(products, selectedPid) : null;
 
+        // sanitize price entered by admin
+        const rawPrice = fd.get('price');
+        const cleaned = sanitizePriceString(rawPrice);
+        const parsed = (cleaned !== '') ? parseFloat(cleaned) : NaN;
+        const priceVal = (Number.isFinite(parsed) && !Number.isNaN(parsed)) ? parsed : undefined;
+
         const payload = {
             section: fd.get('section'),
             title: selectedProduct ? (selectedProduct.title || '') : (fd.get('title') || '').toString().trim(),
             product_id: selectedProduct ? (selectedProduct.id || selectedProduct._id) : (fd.get('product_id') || undefined),
             brand: selectedProduct ? (selectedProduct.brand || '') : (fd.get('brand_select') || ''),
-            price: (fd.get('price') !== null && fd.get('price') !== '') ? parseFloat(fd.get('price')) : undefined,
+            price: typeof priceVal !== 'undefined' ? priceVal : undefined,
             sort: parseInt(fd.get('sort') || '0', 10) || 0,
             visible: (fd.get('visible') === 'true')
         };

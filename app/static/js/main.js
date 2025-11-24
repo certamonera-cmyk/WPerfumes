@@ -806,18 +806,43 @@ document.addEventListener('DOMContentLoaded', function () {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
-                            customer, email, phone, address,
-                            product: item.title,
-                            qty: item.qty || item.quantity || 1,
+                            customer_name: customer,
+                            customer_email: email,
+                            customer_phone: phone,
+                            customer_address: address,
+                            product_id: item.id || item.product_id || '',
+                            product_title: item.title || item.name || '',
+                            quantity: item.qty || item.quantity || 1,
                             status: "Pending",
                             payment_method,
-                            promo_code: appliedPromo || undefined
+                            promo_code: appliedPromo || undefined,
+                            date: new Date().toISOString().slice(0, 19).replace('T', ' ')
                         })
                     });
-                    if (!res.ok) throw new Error('Order placement failed');
+
+                    if (!res.ok) {
+                        // Read server response to surface details for debugging
+                        let errText = "";
+                        try {
+                            const js = await res.json().catch(() => null);
+                            if (js && typeof js === 'object') {
+                                // prefer detailed fields if present
+                                if (js.detail) errText = typeof js.detail === 'string' ? js.detail : JSON.stringify(js.detail);
+                                else errText = JSON.stringify(js);
+                            } else {
+                                errText = await res.text().catch(() => res.statusText || `HTTP ${res.status}`);
+                            }
+                        } catch (readErr) {
+                            errText = res.statusText || `HTTP ${res.status}`;
+                        }
+                        throw new Error(`Order placement failed: ${res.status} ${errText}`);
+                    }
                 } catch (error) {
                     anyFailed = true;
-                    if (msgDiv) msgDiv.innerHTML += `<div class="error-msg">Network error: Failed to place order for ${item.title}.</div>`;
+                    if (msgDiv) {
+                        // include server-provided details when available
+                        msgDiv.innerHTML += `<div class="error-msg">Network error: Failed to place order for ${item.title}.<br><small style="color:#666">${(error && error.message) ? error.message : ''}</small></div>`;
+                    }
                     console.warn('order submission error', error);
                 }
             }
@@ -1060,4 +1085,5 @@ if (typeof window !== 'undefined') {
     window.hideCartModal = window.hideCartModal || hideCartModal;
     window.renderCartModal = window.renderCartModal || renderCartModal;
     window.renderCheckoutView = window.renderCheckoutView || renderCheckoutView;
+    window.saveCart = window.saveCart || saveCart;
 }

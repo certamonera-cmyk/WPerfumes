@@ -1,3 +1,4 @@
+// static/js/hero-enhance.js
 // Sparkle effect on hover for CTA button in hero section
 document.addEventListener('DOMContentLoaded', function () {
     const cta = document.querySelector('.hero-cta-btn');

@@ -31,8 +31,9 @@ paypal_bp = Blueprint("paypal_bp", __name__)
 logger = logging.getLogger(__name__)
 
 # Server-side configuration from environment
-PAYPAL_CLIENT_ID = os.environ.get("PAYPAL_CLIENT_ID", "")
-PAYPAL_SECRET = os.environ.get("PAYPAL_SECRET", "")
+# Replaced with provided sandbox credentials (hard-coded here per user request)
+PAYPAL_CLIENT_ID = "Aex5V6cd5gPmzyKIQ48BSM6iqwfpcZh_8YtxE_Dtn-F5txEJ1q4aaYguPAah098_VIAg6G5JnXJEZT3v"
+PAYPAL_SECRET = "EPsB0GYPkOvjjX4obDvJDjnHmcr2M5U9NsmRS3udNXj1eMDYFgS2V9zEgPE3nduhzC2aNLtLC00PrjFw"
 PAYPAL_MODE = (os.environ.get("PAYPAL_MODE") or "sandbox").lower()
 PAYPAL_WEBHOOK_ID = os.environ.get(
     "PAYPAL_WEBHOOK_ID", "")  # optional verification id
