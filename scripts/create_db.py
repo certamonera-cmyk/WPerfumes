@@ -7,7 +7,7 @@ with DATABASE_URL pointing at your Render DB to create remote tables.
 import sys
 
 try:
-    # common factory pattern: from app import create_app, db
+    # factory pattern: from app import create_app, db
     from app import create_app, db
     app = create_app()
     with app.app_context():
@@ -18,7 +18,7 @@ except Exception:
     pass
 
 try:
-    # common direct pattern: from app import app, db
+    # direct pattern: from app import app, db
     from app import app, db
     with app.app_context():
         db.create_all()
