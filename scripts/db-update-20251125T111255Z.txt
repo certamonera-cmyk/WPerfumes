@@ -1,0 +1,1 @@
+DB update run at 20251125T111255Z - prefixed '/static/' to product.image_url rows that started with 'images/'
