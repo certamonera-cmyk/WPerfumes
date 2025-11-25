@@ -1,0 +1,50 @@
+=== Python executable ===
+D:\WPerfumes\.venv\Scripts\python.exe
+=== Python version ===
+3.13.4 (tags/v3.13.4:8a526ec, Jun  3 2025, 17:46:04) [MSC v.1943 64 bit (AMD64)]
+=== CWD ===
+D:\WPerfumes
+=== ENV vars (selected) ===
+DATABASE_URL=None
+FLASK_APP=None
+FLASK_ENV=None
+APP_SETTINGS=None
+APP_CONFIG=None
+=== sys.path ===
+D:\WPerfumes\scripts
+C:\Python313\python313.zip
+C:\Python313\DLLs
+C:\Python313\Lib
+C:\Python313
+D:\WPerfumes\.venv
+D:\WPerfumes\.venv\Lib\site-packages
+=== Attempting imports and create_all ===
+EXCEPTION:
+Traceback (most recent call last):
+  File "D:\WPerfumes\scripts\create_db_debug.py", line 24, in attempt
+    fn()
+    ~~^^
+  File "D:\WPerfumes\scripts\create_db_debug.py", line 31, in t1
+    import app
+ModuleNotFoundError: No module named 'app'
+
+EXCEPTION:
+Traceback (most recent call last):
+  File "D:\WPerfumes\scripts\create_db_debug.py", line 24, in attempt
+    fn()
+    ~~^^
+  File "D:\WPerfumes\scripts\create_db_debug.py", line 37, in t2
+    from app import create_app, db
+ModuleNotFoundError: No module named 'app'
+
+EXCEPTION:
+Traceback (most recent call last):
+  File "D:\WPerfumes\scripts\create_db_debug.py", line 24, in attempt
+    fn()
+    ~~^^
+  File "D:\WPerfumes\scripts\create_db_debug.py", line 50, in t3
+    from app import app as app_obj, db
+ModuleNotFoundError: No module named 'app'
+
+Failed to import db only
+=== debug script finished ===
