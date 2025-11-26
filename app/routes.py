@@ -1,9 +1,11 @@
+# app/routes.py
 from flask import session
 from flask import Blueprint, request, jsonify, session, render_template, url_for, redirect, current_app
 from flask_mail import Message
 from datetime import datetime
 from . import db, mail
 from .models import Brand, Product, HomepageProduct, Coupon, Order, OrderAttempt, Story
+import re
 
 bp = Blueprint("main", __name__)
 
@@ -20,6 +22,68 @@ def to_static_url(path):
     if isinstance(path, str) and (path.startswith("http://") or path.startswith("https://") or path.startswith("/")):
         return path
     return "/static/" + path.lstrip("/")
+
+
+# -------------------------
+# Server-side price sanitizer
+# -------------------------
+def _sanitize_price_server(raw):
+    """
+    Robustly coerce a client-supplied price into a float or return None if not parseable.
+    Accepts numeric types or strings containing currency symbols, grouping separators and
+    different decimal separators. Attempts to normalize and return float.
+    """
+    if raw is None:
+        return None
+    # already numeric
+    if isinstance(raw, (int, float)):
+        try:
+            return float(raw)
+        except Exception:
+            return None
+
+    s = str(raw).strip()
+    if s == "":
+        return None
+
+    # remove currency symbols and whitespace (but keep ',' and '.' for later disambiguation)
+    s = re.sub(r'[\u00A0\s£$€¥₹]', '', s)
+
+    # If both '.' and ',' present decide which is decimal separator by position:
+    # - if last ',' occurs after last '.' then treat ',' as decimal separator (e.g. "1.234,56")
+    # - else treat '.' as decimal separator and remove commas (e.g. "1,234.56")
+    if ',' in s and '.' in s:
+        if s.rfind(',') > s.rfind('.'):
+            s = s.replace('.', '')
+            s = s.replace(',', '.')
+        else:
+            s = s.replace(',', '')
+    elif ',' in s and '.' not in s:
+        # ambiguous single separator: if the part after last comma has 3 digits -> thousands separator -> remove commas
+        parts = s.split(',')
+        if len(parts[-1]) == 3:
+            s = s.replace(',', '')
+        else:
+            # treat comma as decimal separator
+            s = s.replace(',', '.')
+    # else: no commas, dots left as-is
+
+    # strip any remaining non-digit/dot/minus characters
+    s = re.sub(r'[^0-9.\-]', '', s)
+
+    # normalize multiple dots: keep first as decimal separator
+    parts = s.split('.')
+    if len(parts) > 2:
+        s = parts[0] + '.' + ''.join(parts[1:])
+
+    # avoid bare '-', '.' or '-.'
+    if s in ('', '-', '.', '-.'):
+        return None
+
+    try:
+        return float(s)
+    except Exception:
+        return None
 
 
 # -------------------------
@@ -213,17 +277,28 @@ def get_products():
 @bp.route('/api/products', methods=['POST'])
 def add_product():
     data = request.json or {}
+    # sanitize incoming price robustly
+    raw_price = data.get("price")
+    price_val = _sanitize_price_server(raw_price)
+    price = price_val if (price_val is not None) else 0.0
+
+    # safe quantity parse
+    try:
+        quantity = int(data.get("quantity", 10))
+    except Exception:
+        quantity = 10
+
     product = Product(
         id=data.get("id"),
         brand=data.get("brand"),
         title=data.get("title"),
-        price=float(data.get("price") or 0),
+        price=price,
         description=data.get("description", ""),
         keyNotes=data.get("keyNotes", ""),
         image_url=data.get("image_url", data.get("imageUrl", "")),
         thumbnails=data.get("thumbnails", ""),
         status=data.get("status", "restocked"),
-        quantity=int(data.get("quantity", 10)),
+        quantity=quantity,
         tags=data.get("tags", "")
     )
     db.session.add(product)
@@ -237,15 +312,38 @@ def update_product(id):
     if not prod:
         return jsonify({"error": "Product not found"}), 404
     data = request.json or {}
+
     prod.title = data.get("title", prod.title)
     prod.brand = data.get("brand", prod.brand)
-    prod.price = float(data.get("price", prod.price))
+
+    # Robust price handling: only update if we can parse the incoming value
+    if "price" in data:
+        raw_price = data.get("price")
+        price_val = _sanitize_price_server(raw_price)
+        if price_val is not None:
+            prod.price = price_val
+        else:
+            # If client explicitly sent an empty string or invalid value, set to 0.0
+            # (This preserves previous behavior but avoids exceptions.)
+            try:
+                # treat empty string as 0 if that's what client intended
+                if raw_price == "" or raw_price is None:
+                    prod.price = 0.0
+            except Exception:
+                pass
+
     prod.description = data.get("description", prod.description)
     prod.keyNotes = data.get("keyNotes", prod.keyNotes)
     prod.image_url = data.get("image_url", prod.image_url)
     prod.thumbnails = data.get("thumbnails", prod.thumbnails)
     prod.status = data.get("status", prod.status)
-    prod.quantity = int(data.get("quantity", prod.quantity))
+    # safe quantity parse
+    if "quantity" in data:
+        try:
+            prod.quantity = int(data.get("quantity", prod.quantity))
+        except Exception:
+            # keep existing quantity on parse failure
+            pass
     prod.tags = data.get("tags", prod.tags)
     db.session.commit()
     return jsonify({"success": True})
@@ -487,7 +585,10 @@ def delete_homepage_product(homepage_id):
 def add_to_cart():
     data = request.json or {}
     product_id = data.get("product_id")
-    qty = int(data.get("quantity", 1))
+    try:
+        qty = int(data.get("quantity", 1))
+    except Exception:
+        qty = 1
     prod = Product.query.filter_by(id=product_id).first()
     if not prod:
         return jsonify({"error": "Product not found"}), 404
