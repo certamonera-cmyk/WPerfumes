@@ -1,0 +1,231 @@
+/* Mobile / small-screen overrides for <= 640px */
+@media (max-width: 640px) {
+
+    /* Make overall page avoid accidental horizontal scroll from elements */
+    html,
+    body {
+        overflow-x: hidden;
+    }
+
+    /* Container padding can add up on small screens - reduce it */
+    .container {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+    }
+
+    /* Announcement: reduce padding, keep text and location side-by-side */
+    .announcement-container,
+    .announcement-bar {
+        padding: 6px 8px !important;
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+
+    .announcement-bar {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 8px;
+    }
+
+    .announcement-text-container {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .announcement-list {
+        display: flex;
+        gap: 10px;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 12px;
+        line-height: 1;
+    }
+
+    .announcement-list li {
+        padding: 0;
+        margin: 0;
+    }
+
+    .city-selector {
+        flex: 0 0 auto;
+        margin-left: 8px;
+    }
+
+    .city-selector .shop-locator {
+        display: inline-block;
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+
+    /* NAVBAR: allow items to shrink and keep everything on one line without page scroll */
+    .navbar {
+        padding: 6px 8px !important;
+        gap: 6px;
+    }
+
+    .nav-inner {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        flex: 1 1 auto;
+        min-width: 0;
+        /* critical to allow children to shrink */
+    }
+
+    .brand-logo {
+        font-size: 16px !important;
+        margin-right: 8px;
+        white-space: nowrap;
+        flex: 0 0 auto;
+    }
+
+    /* Make nav-tabs a horizontally-scrollable region inside navbar (page won't scroll) */
+    .nav-tabs {
+        display: flex !important;
+        gap: 6px !important;
+        flex: 1 1 auto;
+        min-width: 0;
+        /* allow shrinking */
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        padding-bottom: 2px;
+    }
+
+    .nav-tabs::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .nav-tabs::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.12);
+        border-radius: 4px;
+    }
+
+    .nav-tabs li {
+        max-width: 110px !important;
+        flex: 0 0 auto;
+    }
+
+    .nav-tabs li a {
+        font-size: 12px !important;
+        padding: 6px 6px !important;
+        white-space: nowrap;
+    }
+
+    /* Search container - keep compact and allow shrink; prefer fixed small width */
+    .navbar-center {
+        flex: 0 0 auto !important;
+        margin: 0 6px;
+        min-width: 0;
+    }
+
+    .search-container input[type="text"],
+    .navbar-center .search-container input#siteSearchInput {
+        width: 120px !important;
+        max-width: 40vw !important;
+        padding: 6px 8px !important;
+        font-size: 13px !important;
+    }
+
+    /* Right side controls: keep compact, hide extra text if necessary */
+    .navbar-right {
+        display: flex !important;
+        align-items: center;
+        gap: 6px;
+        flex: 0 0 auto;
+    }
+
+    /* Hide labels to save horizontal space while keeping icons accessible with aria-labels */
+    .cart-btn>span,
+    .login-btn {
+        display: none !important;
+    }
+
+    /* Keep cart icon and badge visible and compact */
+    .cart-btn,
+    #cartBtn {
+        padding: 6px !important;
+        min-width: 40px;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .cart-btn svg,
+    .cart-btn img,
+    #cartBtn svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .cart-count-badge,
+    #cartCountBadge {
+        top: 2px !important;
+        right: 2px !important;
+        font-size: 11px !important;
+        padding: 2px 5px !important;
+        min-width: 16px;
+        height: 16px;
+    }
+
+    /* Login menu: show a compact icon (if no icon available hide text only) */
+    .login-menu-container {
+        margin-left: 4px;
+    }
+
+    .login-menu-container .signup-btn {
+        font-size: 12px;
+        padding: 6px 8px;
+    }
+
+    /* reduce hero audio absolute box to avoid overflow at edges */
+    #hero-audio-player {
+        top: 10px !important;
+        left: 10px !important;
+        padding: 6px 8px !important;
+        min-width: 64px;
+    }
+
+    /* Reduce hero heading & paragraph sizes for tight screens */
+    #hero h2 {
+        font-size: 1.6em !important;
+    }
+
+    #hero p {
+        font-size: 1.15rem !important;
+        max-width: none;
+    }
+
+    /* Ensure product cards don't force horizontal overflow of the whole page */
+    .card-section-wrapper,
+    .card-container {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+    }
+
+    .card-container {
+        transform: none !important;
+    }
+
+    /* Extremely small screens adjustments */
+    @media (max-width: 380px) {
+        .nav-tabs li {
+            max-width: 90px !important;
+        }
+
+        .search-container input[type="text"] {
+            width: 100px !important;
+        }
+
+        .brand-logo {
+            font-size: 15px !important;
+        }
+    }
+}

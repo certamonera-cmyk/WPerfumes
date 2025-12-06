@@ -1,4 +1,14 @@
 # app/routes_settings.py
+"""
+Settings endpoints for WPerfumes.
+
+Provides:
+- GET  /api/settings/checkout_discount   -> { "percent": 0 }
+- PUT  /api/settings/checkout_discount   -> { "success": True, "percent": <value> }
+- GET  /api/settings/price_comparison    -> { "competitors": [...], "global_margin": <num> }
+- PUT  /api/settings/price_comparison    -> { "success": True }
+- POST /api/settings/price_comparison/push -> { "success": True }
+"""
 from flask import Blueprint, request, jsonify, current_app, session
 from .models import Setting
 from . import db
@@ -12,20 +22,32 @@ def get_checkout_discount():
     """
     Return JSON: { "percent": 2.5 }
     Public endpoint (frontend reads it to show advert).
+    Defensive: DB errors return 503 and are logged.
     """
-    s = Setting.query.get("checkout_discount")
     try:
-        percent = float(s.value) if s and s.value is not None else 0.0
-    except Exception:
-        percent = 0.0
-    return jsonify({"percent": percent})
+        try:
+            s = Setting.query.get("checkout_discount")
+        except Exception as db_exc:
+            current_app.logger.exception(
+                "Database error reading checkout_discount: %s", db_exc)
+            return jsonify({"error": "database_unavailable", "message": "Settings temporarily unavailable"}), 503
+
+        try:
+            percent = float(s.value) if s and s.value is not None else 0.0
+        except Exception:
+            percent = 0.0
+        return jsonify({"percent": percent})
+    except Exception as e:
+        current_app.logger.exception(
+            "Unexpected error in get_checkout_discount: %s", e)
+        return jsonify({"error": "internal_error", "message": "An unexpected error occurred"}), 500
 
 
 @settings_bp.route("/api/settings/checkout_discount", methods=["PUT"])
 def update_checkout_discount():
     """
-    Accept JSON body { "percent": <number> }.
-    Requires admin session (session['user'] == 'admin' or admin@example.com).
+    Set checkout discount percent.
+    Requires admin session (session['user'] == 'admin' or 'admin@example.com').
     """
     if session.get("user") not in ("admin", "admin@example.com"):
         return jsonify({"error": "Unauthorized"}), 401
@@ -39,14 +61,23 @@ def update_checkout_discount():
     if percent < 0 or percent > 100:
         return jsonify({"error": "Percent must be between 0 and 100"}), 400
 
-    s = Setting.query.get("checkout_discount")
-    if not s:
-        s = Setting(key="checkout_discount", value=str(percent))
-        db.session.add(s)
-    else:
-        s.value = str(percent)
-    db.session.commit()
-    return jsonify({"success": True, "percent": percent})
+    try:
+        s = Setting.query.get("checkout_discount")
+        if not s:
+            s = Setting(key="checkout_discount", value=str(percent))
+            db.session.add(s)
+        else:
+            s.value = str(percent)
+        db.session.commit()
+        return jsonify({"success": True, "percent": percent})
+    except Exception as e:
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
+        current_app.logger.exception(
+            "Failed to update checkout_discount: %s", e)
+        return jsonify({"error": "database_write_failed", "message": "Could not save settings"}), 500
 
 
 # -----------------------
@@ -55,7 +86,6 @@ def update_checkout_discount():
 # Stored as Setting.key = 'price_comparison_competitors' with JSON string value.
 # The admin UI produces a list of entries like:
 #   { "name": "...", "product_id": "PRD001", "our_price": 350, "competitor_price": 400, "margin": 2.5 }
-# We validate and persist that structure here.
 # -----------------------
 
 
@@ -67,24 +97,44 @@ def get_price_comparison_settings():
       "competitors": [ {name, product_id, our_price?, competitor_price?, margin?}, ... ],
       "global_margin": <number>
     }
+    Defensive: catches DB errors and returns 503.
     """
     try:
-        s = Setting.query.get("price_comparison_competitors")
+        try:
+            s = Setting.query.get("price_comparison_competitors")
+        except Exception as db_exc:
+            current_app.logger.exception(
+                "Database error reading price_comparison_competitors: %s", db_exc)
+            return jsonify({"error": "database_unavailable", "message": "Settings temporarily unavailable"}), 503
+
         competitors = []
         if s and s.value:
             try:
                 competitors = json.loads(s.value)
             except Exception:
                 current_app.logger.debug(
-                    "Invalid JSON in price_comparison_competitors setting")
+                    "Invalid JSON in price_comparison_competitors setting; returning empty list")
                 competitors = []
-        gm = Setting.query.get("price_comparison_global_margin")
-        global_margin = float(gm.value) if gm and gm.value is not None else 0.0
+
+        try:
+            gm = Setting.query.get("price_comparison_global_margin")
+        except Exception as db_exc:
+            current_app.logger.exception(
+                "Database error reading price_comparison_global_margin: %s", db_exc)
+            return jsonify({"error": "database_unavailable", "message": "Settings temporarily unavailable"}), 503
+
+        global_margin = 0.0
+        try:
+            global_margin = float(
+                gm.value) if gm and gm.value is not None else 0.0
+        except Exception:
+            global_margin = 0.0
+
         return jsonify({"competitors": competitors, "global_margin": global_margin})
     except Exception as e:
         current_app.logger.exception(
-            "Failed to read price comparison settings")
-        return jsonify({"error": "failed to read settings", "detail": str(e)}), 500
+            "Failed to get price comparison settings: %s", e)
+        return jsonify({"error": "internal_error", "message": "Could not read settings"}), 500
 
 
 @settings_bp.route("/api/settings/price_comparison", methods=["PUT"])
@@ -92,8 +142,7 @@ def update_price_comparison_settings():
     """
     Accept JSON body: { "competitors": [...], "global_margin": <number> }
     Requires admin session.
-    We require that each entry contains at least 'name' and 'product_id'.
-    Numeric fields (our_price, competitor_price, margin) are coerced to floats when possible.
+    Validates structure and persists JSON.
     """
     if session.get("user") not in ("admin", "admin@example.com"):
         return jsonify({"error": "Unauthorized"}), 401
@@ -112,7 +161,6 @@ def update_price_comparison_settings():
                 continue
             name = (c.get("name") or "").strip()
             product_id = (c.get("product_id") or "").strip()
-            # enforce required fields
             if not name or not product_id:
                 continue
 
@@ -138,7 +186,13 @@ def update_price_comparison_settings():
             })
 
         # save competitors JSON
-        s = Setting.query.get("price_comparison_competitors")
+        try:
+            s = Setting.query.get("price_comparison_competitors")
+        except Exception as db_exc:
+            current_app.logger.exception(
+                "Database error fetching setting for write: %s", db_exc)
+            return jsonify({"error": "database_unavailable", "message": "Settings temporarily unavailable"}), 503
+
         if not s:
             s = Setting(key="price_comparison_competitors",
                         value=json.dumps(cleaned))
@@ -152,7 +206,12 @@ def update_price_comparison_settings():
                 gm_val = float(global_margin)
             except Exception:
                 return jsonify({"error": "global_margin must be a number"}), 400
-            gm = Setting.query.get("price_comparison_global_margin")
+            try:
+                gm = Setting.query.get("price_comparison_global_margin")
+            except Exception as db_exc:
+                current_app.logger.exception(
+                    "Database error fetching margin setting for write: %s", db_exc)
+                return jsonify({"error": "database_unavailable", "message": "Settings temporarily unavailable"}), 503
             if not gm:
                 gm = Setting(key="price_comparison_global_margin",
                              value=str(gm_val))
@@ -163,21 +222,29 @@ def update_price_comparison_settings():
         db.session.commit()
         return jsonify({"success": True})
     except Exception as e:
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
         current_app.logger.exception(
-            "Failed to save price comparison settings")
-        return jsonify({"error": "failed to save", "detail": str(e)}), 500
+            "Failed to save price comparison settings: %s", e)
+        return jsonify({"error": "failed_to_save", "detail": str(e)}), 500
 
 
 @settings_bp.route("/api/settings/price_comparison/push", methods=["POST"])
 def push_price_comparison_settings():
     """
-    Small helper endpoint used by admin UI after save.
-    For now it simply returns success and logs; provides a stable endpoint admin.js expects.
+    Admin-only endpoint that acts as a 'push' / publish hook for settings.
+    Currently just logs and returns success.
     """
-    # admin guard
     if session.get("user") not in ("admin", "admin@example.com"):
         return jsonify({"error": "Unauthorized"}), 401
-    # For future: this could trigger a cache refresh / re-publish step.
-    current_app.logger.info(
-        "Price comparison push triggered by admin user %s", session.get("user"))
-    return jsonify({"success": True})
+    try:
+        current_app.logger.info(
+            "Price comparison push triggered by admin user %s", session.get("user"))
+        # Future: trigger cache refresh or other publish actions here.
+        return jsonify({"success": True})
+    except Exception as e:
+        current_app.logger.exception(
+            "Failed to handle push_price_comparison_settings: %s", e)
+        return jsonify({"error": "internal_error", "detail": str(e)}), 500

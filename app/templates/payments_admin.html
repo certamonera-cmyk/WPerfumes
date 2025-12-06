@@ -1,43 +1,136 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Payments Admin — WPerfumes</title>
+
+  <!-- base admin styles -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+  <!-- payments admin -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/payments_admin.css') }}">
+
   <style>
-    /* Minimal styles specific to payments panel */
-    .payments-container { max-width: 1100px; margin: 20px auto; padding: 12px; }
-    .payments-actions { display:flex; gap:8px; align-items:center; margin-bottom:12px; }
-    table.payments { width:100%; border-collapse:collapse; }
-    table.payments th, table.payments td { padding:10px; border-bottom:1px solid #eee; text-align:left; }
-    .small-muted { color:#666; font-size:0.95em; }
-    .danger { background:#e74c3c; color:#fff; padding:6px 10px; border:none; border-radius:4px; cursor:pointer; }
-    .btn { background:#2d8f7c; color:#fff; padding:8px 12px; border:none; border-radius:4px; cursor:pointer; }
+    .small-muted {
+      color: #666;
+      font-size: 0.95em;
+    }
+
+    .btn {
+      background: #2d8f7c;
+      color: #fff;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .danger {
+      background: #e74c3c;
+      color: #fff;
+      padding: 6px 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
   </style>
 </head>
+
 <body>
   <div class="payments-container">
     <h2>Payments (Restricted)</h2>
     <div class="small-muted">Only accessible to CEO / Chairman / CFO. Actions are audited and restricted.</div>
 
+    <!-- SUMMARY CARDS -->
+    <div class="payments-summary" id="paymentsSummary">
+      <div class="summary-card total" id="cardFiltered" role="button" tabindex="0" aria-pressed="false">
+        <div class="label">Filtered Total</div>
+        <div class="value" id="summaryTotalFiltered">—</div>
+        <div class="sub" id="summaryTotalSub">Totals for selected duration</div>
+      </div>
+
+      <div class="summary-card cash-in" id="cardCashIn" role="button" tabindex="0" aria-pressed="false">
+        <div class="label">Total Cash In</div>
+        <div class="value" id="summaryCashIn">—</div>
+        <div class="sub">Gross received (filtered)</div>
+      </div>
+
+      <div class="summary-card prev-day" id="cardPrevDay" role="button" tabindex="0" aria-pressed="false">
+        <div class="label">Previous Day Balance</div>
+        <div class="value" id="summaryPrevDay">—</div>
+        <div class="sub">Yesterday's total</div>
+      </div>
+
+      <div class="summary-card today" id="cardToday" role="button" tabindex="0" aria-pressed="false">
+        <div class="label">Today's Balance</div>
+        <div class="value" id="summaryToday">—</div>
+        <div class="sub">Today (up to now)</div>
+      </div>
+
+      <div class="summary-card refunded" id="cardRefunded" role="button" tabindex="0" aria-pressed="false">
+        <div class="label">Refunded</div>
+        <div class="value" id="summaryRefunded">—</div>
+        <div class="sub">Money returned to customers</div>
+      </div>
+
+      <div class="summary-card disputed" id="cardDisputed" role="button" tabindex="0" aria-pressed="false">
+        <div class="label">Disputed (On Hold)</div>
+        <div class="value" id="summaryDisputed">—</div>
+        <div class="sub">Amount on hold pending review / return</div>
+      </div>
+    </div>
+
+    <!-- ACTIONS -->
     <div class="payments-actions">
-      <label>Page: <input id="paymentsPage" type="number" min="1" value="1" style="width:80px" /></label>
+      <label>Page: <input id="paymentsPage" type="number" min="1" value="1" /></label>
+
       <label>Per page:
         <select id="paymentsPerPage">
-          <option>25</option><option>50</option><option>100</option>
+          <option>25</option>
+          <option>50</option>
+          <option>100</option>
         </select>
       </label>
+
+      <label>
+        Duration:
+        <select id="paymentsDuration" class="duration-select" title="Filter by duration">
+          <option value="daily" selected>Daily</option>
+          <option value="yesterday">Yesterday</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+          <option value="yearly">Yearly</option>
+          <option value="custom">Custom range...</option>
+        </select>
+      </label>
+
+      <div id="durationCustom" style="display:none; align-items:center; gap:8px;">
+        <input id="durationFrom" type="date" style="padding:8px;border-radius:8px;border:1px solid #e6e9ea;">
+        <input id="durationTo" type="date" style="padding:8px;border-radius:8px;border:1px solid #e6e9ea;">
+      </div>
+
       <button class="btn" id="loadPaymentsBtn">Load</button>
       <div style="flex:1"></div>
       <div class="small-muted">Use HTTPS. Supply X-ADMIN-TOKEN header for API requests if using token auth.</div>
     </div>
 
+    <!-- PAYMENTS TABLE -->
     <div style="overflow:auto">
-      <table class="payments" id="paymentsTable">
+      <table class="payments" id="paymentsTable" aria-describedby="paymentsPager">
         <thead>
           <tr>
-            <th>ID</th><th>Provider</th><th>Order ID</th><th>Capture ID</th><th>Amount</th><th>Status</th><th>Payer</th><th>Email</th><th>Created</th><th>Actions</th>
+            <th>ID</th>
+            <th>Provider</th>
+            <th>Order ID</th>
+            <th>Capture ID</th>
+            <th>Amount</th>
+            <th>PayPal Fee</th>
+            <th>Status</th>
+            <th>Payer</th>
+            <th>Email</th>
+            <th>Created</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -46,13 +139,48 @@
 
     <div id="paymentsPager" style="margin-top:12px;color:#666;"></div>
 
-    <!-- details / actions modal -->
-    <div id="paymentsModal" style="display:none; position:fixed; left:0; top:0; right:0; bottom:0; background: rgba(0,0,0,0.4); align-items:center; justify-content:center;">
-      <div style="background:#fff; padding:18px; border-radius:8px; width:760px; max-width:95%; max-height:90%; overflow:auto;">
-        <button id="paymentsModalClose" style="float:right;">✕</button>
-        <h3 id="paymentsModalTitle">Payment</h3>
-        <pre id="paymentsModalBody" style="background:#f7f7f7;padding:12px;border-radius:6px;max-height:400px;overflow:auto;"></pre>
-        <div style="display:flex;gap:8px;margin-top:12px;">
+    <!-- DETAILS / ACTIONS MODAL (structured view) -->
+    <div id="paymentsModal" aria-hidden="true">
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="paymentsModalTitle">
+        <button id="paymentsModalClose" title="Close">✕</button>
+        <h3 id="paymentsModalTitle">Payment details</h3>
+
+        <div id="paymentsModalContent" aria-live="polite">
+          <!-- Legacy raw JSON pre (observer will detect and convert) -->
+          <pre id="paymentsModalBody"
+            style="display:none; background:#f7f7f7;padding:12px;border-radius:6px;max-height:400px;overflow:auto;"></pre>
+
+          <!-- Details summary -->
+          <table class="details-table" id="paymentsDetailsTable" role="presentation">
+            <tbody></tbody>
+          </table>
+
+          <!-- Items -->
+          <h4 style="margin:8px 0 6px 0;">Items</h4>
+          <div class="order-table-scroll">
+            <table class="items-table" id="paymentsItemsTable" role="table" aria-label="Purchased items">
+              <thead>
+                <tr>
+                  <th>SKU / ID</th>
+                  <th>Product</th>
+                  <th>Qty</th>
+                  <th>Unit</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="4" style="text-align:right;padding:12px 14px;font-weight:900;color:var(--muted);">Order
+                    Total</td>
+                  <td id="itemsTableTotal" style="padding:12px 14px;font-weight:900;color:var(--text-dark);">—</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:12px;align-items:center;">
           <button id="refundBtn" class="danger">Initiate Refund</button>
           <button id="closeBtn" class="btn">Close</button>
           <div style="flex:1"></div>
@@ -62,6 +190,11 @@
     </div>
   </div>
 
+  <!-- Existing site script (keeps your current behavior) -->
   <script src="{{ url_for('static', filename='js/payments-admin.js') }}"></script>
+
+  <!-- New panel script (load after existing script so we can integrate) -->
+  <script src="{{ url_for('static', filename='js/payments_admin.js') }}"></script>
 </body>
+
 </html>

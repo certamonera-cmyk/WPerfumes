@@ -1,9 +1,14 @@
 """app/__init__.py
 
 Application factory and extension initialization for the WPerfumes Flask app.
-This version includes:
- - Optional local SQLite fallback for development
- - Automatic SQLAlchemy engine connect_args for Postgres SSL (sslmode=require)
+
+This file is an improved, drop-in replacement that:
+ - Normalizes DATABASE_URL (postgres:// -> postgresql://)
+ - Falls back to SQLite for local dev if DATABASE_URL is not set
+ - Applies robust SQLAlchemy engine options (pool_pre_ping, pool_size, etc.)
+ - Sets sslmode=require for Postgres when not specified
+ - Registers an OperationalError handler to return 503 JSON (avoids leaking tracebacks)
+ - Initializes extensions and registers blueprints in a fault-tolerant way
 """
 import os
 import logging
@@ -87,15 +92,30 @@ def create_app(test_config=None) -> Flask:
     database_url = _normalize_database_url(database_url)
     app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 
-    # If connecting to Postgres and sslmode wasn't specified, instruct SQLAlchemy/psycopg2 to require SSL.
+    # Default engine options to be resilient to transient DB issues.
     engine_opts = app.config.get("SQLALCHEMY_ENGINE_OPTIONS", {}) or {}
+
+    # sensible pool defaults if caller hasn't set them
+    # avoids using stale connections
+    engine_opts.setdefault("pool_pre_ping", True)
+    engine_opts.setdefault("pool_size", int(
+        os.environ.get("SQL_POOL_SIZE", 5)))
+    engine_opts.setdefault("max_overflow", int(
+        os.environ.get("SQL_MAX_OVERFLOW", 10)))
+    engine_opts.setdefault("pool_timeout", int(
+        os.environ.get("SQL_POOL_TIMEOUT", 30)))
+    engine_opts.setdefault("pool_recycle", int(
+        os.environ.get("SQL_POOL_RECYCLE", 1800)))
+
+    # If connecting to Postgres and sslmode wasn't specified, instruct SQLAlchemy/psycopg2 to require SSL.
     try:
-        if database_url.startswith("postgresql://") and "sslmode=" not in database_url and "connect_args" not in engine_opts:
-            # This will instruct psycopg2 to use SSL (no host cert verification) which is sufficient for most providers.
-            engine_opts["connect_args"] = {
-                "sslmode": os.environ.get("PGSSLMODE", "require")}
-            app.logger.debug("Setting SQLALCHEMY_ENGINE_OPTIONS.connect_args.sslmode=%s",
-                             engine_opts["connect_args"]["sslmode"])
+        if database_url.startswith("postgresql://") and "sslmode=" not in database_url:
+            # only set connect_args if not already present
+            if "connect_args" not in engine_opts:
+                engine_opts["connect_args"] = {
+                    "sslmode": os.environ.get("PGSSLMODE", "require")}
+                app.logger.debug("Setting SQLALCHEMY_ENGINE_OPTIONS.connect_args.sslmode=%s",
+                                 engine_opts["connect_args"]["sslmode"])
     except Exception:
         app.logger.debug("Could not set postgres sslmode engine option")
 
@@ -113,10 +133,28 @@ def create_app(test_config=None) -> Flask:
     app.config.setdefault("MAIL_USE_TLS", True)
     app.config.setdefault("MAIL_USE_SSL", False)
 
+    # Initialize extensions
     db.init_app(app)
     mail.init_app(app)
     CORS(app, supports_credentials=True)
     migrate.init_app(app, db)
+
+    # Register a graceful handler for DB OperationalError so requests return 503 instead of a traceback
+    try:
+        from sqlalchemy.exc import OperationalError as SAOperationalError
+
+        @app.errorhandler(SAOperationalError)
+        def handle_sa_operational_error(err):
+            # Log full exception for diagnostics, return friendly JSON 503
+            app.logger.exception(
+                "Database operational error (returning 503): %s", err)
+            from flask import jsonify
+            return jsonify({
+                "error": "database_unavailable",
+                "message": "The database is temporarily unavailable. Please try again shortly."
+            }), 503
+    except Exception:
+        app.logger.debug("Could not register OperationalError handler")
 
     # Register blueprints (same pattern as before) - keep the existing import/register logic
     try:
@@ -196,8 +234,8 @@ def create_app(test_config=None) -> Flask:
 
     try:
         # Set Jinja globals for PayPal client id/mode/currency.
-        # Client ID replaced with provided sandbox client id (hard-coded per request).
-        app.jinja_env.globals['PAYPAL_CLIENT_ID'] = "Aex5V6cd5gPmzyKIQ48BSM6iqwfpcZh_8YtxE_Dtn-F5txEJ1q4aaYguPAah098_VIAg6G5JnXJEZT3v"
+        app.jinja_env.globals['PAYPAL_CLIENT_ID'] = os.environ.get(
+            "PAYPAL_CLIENT_ID", "Aex5V6cd5gPmzyKIQ48BSM6iqwfpcZh_8YtxE_Dtn-F5txEJ1q4aaYguPAah098_VIAg6G5JnXJEZT3v")
         app.jinja_env.globals['PAYPAL_MODE'] = (
             os.environ.get("PAYPAL_MODE") or "sandbox").lower()
         app.jinja_env.globals['PAYPAL_CURRENCY'] = os.environ.get(

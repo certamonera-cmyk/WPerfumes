@@ -1,0 +1,459 @@
+/* payments_admin.css
+   Enhanced styling for the Payments admin panel modal tables so details/items are
+   clearly visible and stand out. Ready to copy/paste into: static/css/payments_admin.css
+   Assumes admin.css is loaded first (uses its CSS variables); fallbacks included.
+*/
+
+/* Fallback variables in case admin.css isn't loaded */
+:root {
+  --p: var(--primary, #2d8f7c);
+  --accent-color: var(--accent, #f1c40f);
+  --danger-color: var(--danger, #e74c3c);
+  --muted: #7b8790;
+  --card-bg: var(--card-bg, #fff);
+  --text-dark: var(--text-dark, #232323);
+  --shadow-lg: 0 25px 60px rgba(15,20,30,0.12);
+}
+
+/* ---------------- Container ---------------- */
+.payments-container {
+  max-width: 1180px;
+  margin: 28px auto;
+  padding: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,250,250,0.98));
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(32,40,50,0.04);
+  border: 1px solid rgba(30,40,50,0.03);
+  font-family: inherit;
+}
+
+.payments-container h2 {
+  margin: 0 0 6px 0;
+  font-size: 1.45rem;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.small-muted {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+/* ---------------- Actions row ---------------- */
+.payments-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 14px 0 18px 0;
+  flex-wrap: wrap;
+}
+
+.payments-actions label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.payments-actions input[type="number"],
+.payments-actions select {
+  border: 1px solid #e6e9ea;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text-dark);
+  outline: none;
+  min-width: 84px;
+  transition: box-shadow 150ms ease, border-color 150ms ease;
+}
+
+.payments-actions input[type="number"]:focus,
+.payments-actions select:focus {
+  box-shadow: 0 6px 18px rgba(45,143,124,0.08);
+  border-color: var(--p);
+}
+
+/* Duration filter select styling */
+.duration-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border: 1px solid #e6e9ea;
+  background: #fff url("data:image/svg+xml;charset=UTF-8,%3Csvg width='14' height='10' viewBox='0 0 14 10' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10L0 0h14L7 10z' fill='%237b8790'/%3E%3C/svg%3E") no-repeat right 10px center/10px;
+  padding: 8px 36px 8px 10px;
+  border-radius: 8px;
+  min-width: 140px;
+  font-weight: 700;
+}
+
+/* Primary action */
+#loadPaymentsBtn {
+  background: linear-gradient(180deg, var(--p), #236f63);
+  border: none;
+  color: #fff;
+  padding: 9px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(45,143,124,0.12);
+  font-weight: 700;
+}
+
+/* ---------------- Payments table ---------------- */
+table.payments {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  font-size: 0.95rem;
+  background: transparent;
+}
+
+table.payments thead th {
+  text-align: left;
+  padding: 12px 14px;
+  background: #fbfcfd;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.92rem;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  border-bottom: 1px solid #eef2f3;
+}
+
+table.payments td, table.payments th {
+  padding: 12px 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Column width hints (includes new PayPal Fee column) */
+table.payments td:nth-child(1) { width: 6%; }   /* ID */
+table.payments td:nth-child(2) { width: 9%; }   /* Provider */
+table.payments td:nth-child(3) { width: 11%; }  /* Order ID */
+table.payments td:nth-child(4) { width: 11%; }  /* Capture ID */
+table.payments td:nth-child(5) { width: 8%; }   /* Amount */
+table.payments td:nth-child(6) { width: 8%; }   /* PayPal Fee (NEW) */
+table.payments td:nth-child(7) { width: 10%; }  /* Status */
+table.payments td:nth-child(8) { width: 11%; }  /* Payer */
+table.payments td:nth-child(9) { width: 16%; }  /* Email */
+table.payments td:nth-child(10){ width: 9%; }   /* Created */
+table.payments td:nth-child(11){ width: 11%; }  /* Actions */
+
+/* Row hover elevation */
+table.payments tbody tr {
+  background: var(--card-bg);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+table.payments tbody tr:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(35,35,35,0.04);
+}
+
+td .meta {
+  display: block;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+td .bold {
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.amount {
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+/* ---------------- Badges & actions ---------------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #fff;
+}
+
+.badge.success  { background: linear-gradient(180deg,#2ecc71,#25a85e); }
+.badge.pending  { background: linear-gradient(180deg,#f39c12,#d78f11); }
+.badge.failed   { background: linear-gradient(180deg,#e74c3c,#c5392a); }
+.badge.refunded { background: linear-gradient(180deg,#9b59b6,#7f3f9a); }
+
+.action-btn {
+  background: transparent;
+  border: 1px solid rgba(34,34,34,0.06);
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--p);
+  font-weight: 700;
+  transition: background 130ms ease, transform 120ms ease;
+}
+
+.action-btn:hover {
+  background: rgba(45,143,124,0.04);
+  transform: translateY(-2px);
+}
+
+.action-btn.ghost {
+  border-style: dashed;
+  color: var(--muted);
+}
+
+/* Emphasize PayPal fee cell (distinct color) */
+.fee-cell {
+  color: #b03a2e;
+  font-weight: 800;
+}
+
+/* ---------------- Pager ---------------- */
+#paymentsPager {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 6px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+/* ---------------- Modal ---------------- */
+#paymentsModal {
+  display: none; /* controlled by JS */
+  position: fixed;
+  left: 0; top: 0; right: 0; bottom: 0;
+  background: linear-gradient(180deg, rgba(10,14,20,0.48), rgba(10,14,20,0.48));
+  z-index: 300;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+}
+
+#paymentsModal .modal-card {
+  background: linear-gradient(180deg, var(--card-bg), #fff);
+  padding: 22px;
+  border-radius: 12px;
+  width: 860px;
+  max-width: 96%;
+  max-height: 92vh;
+  overflow: auto;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(0,0,0,0.04);
+  position: relative;
+}
+
+/* Legacy <pre> should be hidden by default; converter shows it only if needed */
+#paymentsModalBody { display: none !important; }
+
+#paymentsModalClose {
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  cursor: pointer;
+  color: var(--muted);
+}
+
+#paymentsModalTitle {
+  margin: 0 0 12px 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  letter-spacing: 0.01em;
+}
+
+#paymentsModalMsg { display: flex; gap: 8px; align-items: center; }
+
+/* ---------------- Details summary table (card) ---------------- */
+.details-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-bottom: 12px;
+  font-size: 0.98rem;
+  background: linear-gradient(180deg, rgba(245,247,249,0.9), rgba(255,255,255,0.98));
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(20,30,40,0.03);
+  border: 1px solid rgba(30,40,50,0.04);
+}
+
+.details-table tr { border-bottom: 1px solid rgba(20,30,40,0.03); }
+
+.details-table td.key {
+  width: 30%;
+  padding: 12px 16px;
+  background: rgba(45,143,124,0.03);
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.details-table td.value {
+  width: 70%;
+  padding: 12px 16px;
+  color: var(--text-dark);
+  font-weight: 700;
+  font-size: 0.97rem;
+  word-break: break-word;
+}
+
+.details-table td.value .subtle {
+  color: var(--muted);
+  font-weight: 600;
+  display: block;
+  margin-top: 6px;
+  font-size: 0.9rem;
+}
+
+/* Order total row style (bottom emphasized) */
+.details-table tr.order-total td.value {
+  color: var(--text-dark);
+  font-size: 1.05rem;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+}
+
+/* ---------------- Items table (standout card) ---------------- */
+.order-table-scroll {
+  overflow-x: auto;
+  width: 100%;
+  border-radius: 8px;
+  margin-top: 6px;
+  border-top: 1px solid rgba(20,30,40,0.03);
+  padding-top: 8px;
+}
+
+.items-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 6px;
+  font-size: 0.95rem;
+  background: transparent;
+  min-width: 680px;
+}
+
+.items-table thead th {
+  text-align: left;
+  padding: 12px 14px;
+  background: linear-gradient(180deg, rgba(246,249,248,0.95), rgba(251,252,253,0.99));
+  color: var(--muted);
+  font-weight: 800;
+  font-size: 0.9rem;
+  border-bottom: 1px solid rgba(20,30,40,0.04);
+}
+
+.items-table tbody tr {
+  background: linear-gradient(180deg, #fff, #fbfcfd);
+  transition: background 140ms ease, transform 120ms ease;
+}
+
+.items-table tbody tr:nth-child(odd)  { background: linear-gradient(180deg, #fff, #fff); }
+.items-table tbody tr:nth-child(even) { background: linear-gradient(180deg, #fbfcfd, #fafbfc); }
+
+.items-table tbody tr:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(180deg, rgba(45,143,124,0.03), rgba(45,143,124,0.01));
+  box-shadow: 0 8px 24px rgba(20,30,40,0.035);
+}
+
+.items-table tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(20,30,40,0.03);
+  color: var(--text-dark);
+  vertical-align: middle;
+  font-weight: 600;
+}
+
+.items-table .desc {
+  font-weight: 500;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.items-table td[data-align="right"],
+.items-table th[data-align="right"] {
+  text-align: right;
+}
+
+.items-table td.total, .items-table td.amount {
+  font-weight: 800;
+  color: var(--text-dark);
+}
+
+/* Footer / totals row in items table */
+.items-table tfoot td {
+  padding: 12px 14px;
+  font-weight: 900;
+  background: rgba(0,0,0,0.02);
+  border-top: 1px solid rgba(20,30,40,0.04);
+}
+
+/* ---------------- Modal buttons ---------------- */
+#refundBtn {
+  background: linear-gradient(180deg, var(--danger-color), #cc3a34);
+  border: none;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 800;
+  box-shadow: 0 10px 24px rgba(231,76,60,0.08);
+}
+
+#closeBtn {
+  background: linear-gradient(180deg, var(--p), #236f63);
+  border: none;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+/* Modal badge */
+.modal-badge {
+  display: inline-block;
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.modal-badge.success  { background: linear-gradient(180deg,#2ecc71,#25a85e); }
+.modal-badge.pending  { background: linear-gradient(180deg,#f39c12,#d78f11); }
+.modal-badge.failed   { background: linear-gradient(180deg,#e74c3c,#c5392a); }
+.modal-badge.refunded { background: linear-gradient(180deg,#9b59b6,#7f3f9a); }
+
+/* ---------------- Responsive ---------------- */
+@media (max-width: 980px) {
+  #paymentsModal .modal-card { width: 92%; padding: 18px; }
+  .items-table thead th, .items-table tbody td { padding: 10px; }
+  .details-table td.key, .details-table td.value { padding: 10px; }
+}
+
+@media (max-width: 760px) {
+  #paymentsModal .modal-card { width: 96%; padding: 14px; }
+  .details-table td.key { display: block; width: 100%; background: transparent; color: var(--muted); padding: 8px 0; font-weight: 800; }
+  .details-table td.value { display: block; width: 100%; padding: 4px 0 12px 0; font-weight: 700; }
+  .items-table thead { display: none; }
+  .items-table tbody td { display: flex; justify-content: space-between; padding: 10px; }
+  .items-table tbody td::before { content: attr(data-label); color: var(--muted); font-weight: 700; margin-right: 8px; }
+  .items-table { min-width: 100%; }
+}
+
+/* ---------------- Accessibility ---------------- */
+button:focus, a:focus, input:focus, select:focus {
+  outline: 3px solid rgba(45,143,124,0.12);
+  outline-offset: 2px;
+}

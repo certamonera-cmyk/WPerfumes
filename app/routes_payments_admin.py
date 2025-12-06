@@ -1,3 +1,4 @@
+# routes_payments_admin.py
 from __future__ import annotations
 import os
 import json
@@ -182,6 +183,284 @@ def api_create_manage_user():
         return jsonify({"error": "create_failed", "detail": str(e)}), 500
 
 
+# ---------- Utilities & helpers for refunds/actions ----------
+
+def _serialize_payment(p: Any) -> Dict[str, Any]:
+    """Return a JSON-serializable dict for a Payment row (used in responses)."""
+    if p is None:
+        return {}
+    try:
+        order = None
+        if getattr(p, "order_id", None) and Order is not None:
+            o = Order.query.get(p.order_id)
+            if o:
+                order = {
+                    "id": o.id,
+                    "order_number": getattr(o, "order_number", None) or None,
+                    "customer_name": getattr(o, "customer_name", None) or None,
+                    "customer_email": getattr(o, "customer_email", None) or None,
+                    "status": getattr(o, "status", None) or None,
+                    "total_amount": str(getattr(o, "total_amount", None)) if getattr(o, "total_amount", None) is not None else None,
+                    "currency": getattr(o, "currency", None) or None,
+                }
+    except Exception:
+        order = None
+    try:
+        return {
+            "id": p.id,
+            "order_id": getattr(p, "order_id", None),
+            "provider": getattr(p, "provider", None),
+            "provider_order_id": getattr(p, "provider_order_id", None),
+            "provider_capture_id": getattr(p, "provider_capture_id", None),
+            "amount": str(getattr(p, "amount", None)),
+            "currency": getattr(p, "currency", None),
+            "status": getattr(p, "status", None),
+            "payer_name": getattr(p, "payer_name", None),
+            "payer_email": getattr(p, "payer_email", None),
+            "payer_id": getattr(p, "payer_id", None),
+            "raw_response": getattr(p, "raw_response", None),
+            "created_at": getattr(p, "created_at").isoformat() if getattr(p, "created_at", None) else None,
+            "order": order
+        }
+    except Exception:
+        return {"id": getattr(p, "id", None)}
+
+
+def _append_admin_action(p: Any, action_record: Dict[str, Any]) -> None:
+    """
+    Append an admin action record into p.raw_response['_admin_actions'] (creates it if necessary)
+    and persist p to DB. Best-effort; failures are non-fatal beyond logging.
+    """
+    try:
+        if p is None:
+            return
+        rr = getattr(p, "raw_response", None) or {}
+        if not isinstance(rr, dict):
+            # if it's JSON string, try parse
+            try:
+                rr = json.loads(rr)
+            except Exception:
+                rr = {}
+        actions = rr.get("_admin_actions", [])
+        actions.append(action_record)
+        rr["_admin_actions"] = actions
+        p.raw_response = rr
+        db.session.add(p)
+        db.session.commit()
+    except Exception:
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
+        logger.exception("Failed to persist admin action for payment %s", getattr(p, "id", "<unknown>"))
+
+
+def _call_paypal_refund(capture_id: str, amount: Optional[float], currency: str, note: str) -> Dict[str, Any]:
+    """
+    Call PayPal capture refund API. Returns PayPal response JSON or raises requests.HTTPError / Exception.
+    If amount is None -> refund full amount (no 'amount' in payload).
+    """
+    if not get_paypal_access_token or not PAYPAL_BASE:
+        raise RuntimeError("PayPal integration not configured on server")
+    token = get_paypal_access_token()
+    url = f"{PAYPAL_BASE}/v2/payments/captures/{capture_id}/refund"
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    payload = {}
+    if amount is not None:
+        # Ensure amount as string with two decimals
+        payload["amount"] = {"value": f"{float(amount):.2f}", "currency_code": (currency or "USD")}
+    if note:
+        payload["note_to_payer"] = note
+    r = requests.post(url, headers=headers, json=payload or {}, timeout=20)
+    r.raise_for_status()
+    return r.json()
+
+
+def _perform_payment_action(payment: Any, action: str, refund_amount: Optional[float], refund_percent: Optional[float], note: str, actor: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
+    """
+    Perform admin action on a Payment record.
+    action: 'hold' | 'review' | 'refund' | 'rejected' | 'settled'
+    refund_amount: explicit numeric amount (optional)
+    refund_percent: numeric 25/50/100 etc. (optional)
+    note: optional text to store/send
+    actor: optional dict { username, role } for audit record
+
+    Returns dict { success: bool, message: str, updated_payment?: {...}, refund_response?: {...} }
+    """
+    if payment is None:
+        return {"success": False, "message": "payment_not_found"}
+
+    # Resolve gross amount if needed
+    try:
+        gross = float(payment.amount) if getattr(payment, "amount", None) is not None else None
+    except Exception:
+        gross = None
+
+    resolved_refund_amount = None
+    if action == "refund":
+        # If refund_amount provided, use it. Else if refund_percent provided compute.
+        if refund_amount is not None:
+            try:
+                resolved_refund_amount = float(refund_amount)
+            except Exception:
+                resolved_refund_amount = None
+        elif refund_percent is not None and gross is not None:
+            try:
+                resolved_refund_amount = round((float(refund_percent) / 100.0) * float(gross), 2)
+            except Exception:
+                resolved_refund_amount = None
+        else:
+            # Full refund fallback
+            resolved_refund_amount = float(gross) if gross is not None else None
+
+    # Build audit record
+    action_record = {
+        "timestamp": __import__("datetime").datetime.utcnow().isoformat(),
+        "actor": actor or {"username": getattr(request, "payments_admin_user", {}).get("username", "unknown")},
+        "action": action,
+        "refund_amount": resolved_refund_amount,
+        "refund_percent": refund_percent,
+        "note": note
+    }
+
+    # If action is hold -> mark status and persist
+    if action in ("hold", "on_hold"):
+        payment.status = "on_hold"
+        _append_admin_action(payment, action_record)
+        try:
+            db.session.add(payment)
+            db.session.commit()
+        except Exception:
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
+            logger.exception("Failed to persist on_hold status for payment %s", payment.id)
+            return {"success": False, "message": "db_persist_failed"}
+        return {"success": True, "message": "payment_on_hold", "updated_payment": _serialize_payment(payment)}
+
+    # review/disputed
+    if action in ("review", "dispute", "disputed"):
+        payment.status = "disputed"
+        _append_admin_action(payment, action_record)
+        try:
+            db.session.add(payment)
+            db.session.commit()
+        except Exception:
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
+            logger.exception("Failed to persist disputed status for payment %s", payment.id)
+            return {"success": False, "message": "db_persist_failed"}
+        return {"success": True, "message": "payment_marked_disputed", "updated_payment": _serialize_payment(payment)}
+
+    # rejected/settled: admin rejects the customer's claim -> funds stay with merchant (treat as settled sales)
+    if action in ("rejected", "settled", "reject"):
+        try:
+            # set a clear settled status on payment
+            payment.status = "settled"
+            # if there's an associated Order model (payments.models_payments.Order), mark order as paid/settled
+            try:
+                if getattr(payment, "order_id", None) and Order is not None:
+                    o = Order.query.get(payment.order_id)
+                    if o:
+                        # Mark as paid; chosen canonical value is 'paid'
+                        o.status = "paid"
+                        db.session.add(o)
+            except Exception:
+                # non-fatal if order update fails
+                logger.exception("Failed to update linked order status for payment %s", getattr(payment, "id", "<unknown>"))
+            _append_admin_action(payment, action_record)
+            try:
+                db.session.add(payment)
+                db.session.commit()
+            except Exception:
+                try:
+                    db.session.rollback()
+                except Exception:
+                    pass
+                logger.exception("Failed to persist settled/rejected status for payment %s", payment.id)
+                return {"success": False, "message": "db_persist_failed"}
+            return {"success": True, "message": "payment_settled_rejected", "updated_payment": _serialize_payment(payment)}
+        except Exception as e:
+            logger.exception("Unexpected error applying rejected/settled action to payment %s: %s", getattr(payment, "id", "<unknown>"), e)
+            return {"success": False, "message": "rejected_action_failed", "detail": str(e)}
+
+    # Refund flow (calls provider)
+    if action == "refund":
+        # If provider unsupported -> return an informative error and still record action
+        provider = (getattr(payment, "provider", "") or "").lower()
+        capture_id = getattr(payment, "provider_capture_id", None)
+        currency = getattr(payment, "currency", None) or "USD"
+
+        if provider != "paypal":
+            # record admin intent but do not call provider
+            action_record["warning"] = f"provider_{provider}_unsupported_for_refund"
+            _append_admin_action(payment, action_record)
+            payment.status = "refund_pending"
+            try:
+                db.session.add(payment)
+                db.session.commit()
+            except Exception:
+                try:
+                    db.session.rollback()
+                except Exception:
+                    pass
+            return {"success": False, "message": "unsupported_provider_for_refund", "updated_payment": _serialize_payment(payment)}
+
+        if not capture_id:
+            _append_admin_action(payment, {**action_record, "error": "no_capture_id"})
+            return {"success": False, "message": "no_capture_id"}
+
+        # Attempt PayPal refund
+        try:
+            refund_resp = _call_paypal_refund(capture_id=capture_id, amount=resolved_refund_amount, currency=currency, note=note)
+            # Persist refund info to raw_response._refunds and update status
+            try:
+                rr = getattr(payment, "raw_response", None) or {}
+                if not isinstance(rr, dict):
+                    try:
+                        rr = json.loads(rr)
+                    except Exception:
+                        rr = {}
+                # ensure _refunds list
+                rf_list = rr.get("_refunds", [])
+                rf_list.append(refund_resp)
+                rr["_refunds"] = rf_list
+                # append admin action as well
+                rr.setdefault("_admin_actions", []).append(action_record)
+                payment.raw_response = rr
+                payment.status = "refunded"
+                db.session.add(payment)
+                db.session.commit()
+            except Exception:
+                try:
+                    db.session.rollback()
+                except Exception:
+                    pass
+                logger.exception("Failed to persist refund info for payment %s", payment.id)
+            return {"success": True, "message": "refund_initiated", "refund_response": refund_resp, "updated_payment": _serialize_payment(payment)}
+        except requests.HTTPError as he:
+            logger.exception("PayPal refund HTTP error for capture %s: %s", capture_id, he)
+            try:
+                details = he.response.json()
+            except Exception:
+                details = {"error": str(he)}
+            # Persist failed attempt as admin action
+            _append_admin_action(payment, {**action_record, "error": "paypal_refund_failed", "detail": details})
+            return {"success": False, "message": "paypal_refund_failed", "detail": details}, 502
+        except Exception as e:
+            logger.exception("Unexpected refund error for capture %s: %s", capture_id, e)
+            _append_admin_action(payment, {**action_record, "error": "refund_failed", "detail": str(e)})
+            return {"success": False, "message": "refund_failed", "detail": str(e)}, 500
+
+    # Unknown action
+    return {"success": False, "message": "unknown_action"}
+
+
+# ---------- Payments listing with optional server-side filtering ----------
+
 @bp.route("/api/payments", methods=["GET"])
 @require_payments_admin
 def api_list_payments():
@@ -195,6 +474,32 @@ def api_list_payments():
         per_page = 25
 
     q = Payment.query.order_by(Payment.created_at.desc())
+
+    # Optional server-side filters (simple)
+    status_filter = (request.args.get("status") or "").strip().lower()
+    category = (request.args.get("category") or "").strip().lower()  # alternate param
+    if status_filter:
+        if status_filter in ("refunded", "refund"):
+            q = q.filter(Payment.status.ilike("%refund%"))
+        elif status_filter in ("disputed", "disput"):
+            q = q.filter(Payment.status.ilike("%disput%"))
+        elif status_filter in ("on_hold", "hold", "held"):
+            q = q.filter(Payment.status.ilike("%hold%") | (Payment.status == "on_hold"))
+        elif status_filter in ("settled", "rejected", "rejected_settled"):
+            q = q.filter(Payment.status.ilike("%settle%") | (Payment.status == "settled"))
+        else:
+            q = q.filter(Payment.status.ilike(f"%{status_filter}%"))
+    elif category:
+        # support legacy category keys from frontend (cash-in, today, prev-day, filtered)
+        cat = category
+        if cat == "refunded":
+            q = q.filter(Payment.status.ilike("%refund%"))
+        elif cat == "disputed":
+            q = q.filter(Payment.status.ilike("%disput%"))
+        elif cat in ("settled", "rejected"):
+            q = q.filter(Payment.status.ilike("%settle%") | (Payment.status == "settled"))
+        # else do nothing (frontend can still handle client-side)
+
     pagination = q.paginate(page=page, per_page=per_page, error_out=False)
 
     items = []
@@ -205,12 +510,12 @@ def api_list_payments():
             if o:
                 order = {
                     "id": o.id,
-                    "order_number": o.order_number,
-                    "customer_name": o.customer_name,
-                    "customer_email": o.customer_email,
-                    "status": o.status,
-                    "total_amount": str(o.total_amount),
-                    "currency": o.currency,
+                    "order_number": getattr(o, "order_number", None) or None,
+                    "customer_name": getattr(o, "customer_name", None) or None,
+                    "customer_email": getattr(o, "customer_email", None) or None,
+                    "status": getattr(o, "status", None) or None,
+                    "total_amount": str(getattr(o, "total_amount", None)) if getattr(o, "total_amount", None) is not None else None,
+                    "currency": getattr(o, "currency", None) or None,
                 }
         items.append({
             "id": p.id,
@@ -252,12 +557,12 @@ def api_payment_detail(payment_id: int):
         if o:
             order = {
                 "id": o.id,
-                "order_number": o.order_number,
-                "customer_name": o.customer_name,
-                "customer_email": o.customer_email,
-                "status": o.status,
-                "total_amount": str(o.total_amount),
-                "currency": o.currency,
+                "order_number": getattr(o, "order_number", None) or None,
+                "customer_name": getattr(o, "customer_name", None) or None,
+                "customer_email": getattr(o, "customer_email", None) or None,
+                "status": getattr(o, "status", None) or None,
+                "total_amount": str(getattr(o, "total_amount", None)) if getattr(o, "total_amount", None) is not None else None,
+                "currency": getattr(o, "currency", None) or None,
             }
     resp = {
         "id": p.id,
@@ -278,18 +583,14 @@ def api_payment_detail(payment_id: int):
     return jsonify(resp)
 
 
+# Backwards-compatible endpoint that accepts structured payload via URL path
 @bp.route("/api/payments/<int:payment_id>/refund", methods=["POST"])
 @require_payments_admin
 def api_payment_refund(payment_id: int):
     """
-    Initiate a refund for a captured PayPal payment.
-    This will call PayPal Refund API server-side. Refund amount optional in JSON body:
-      { "amount": "10.00", "currency": "USD", "note_to_payer": "text" }
-
-    IMPORTANT: In production you should:
-      - require an additional confirmation step (2nd factor)
-      - record admin action in audit logs
-      - ensure refund amounts and business rules are followed
+    Legacy/ID-based refund endpoint. Now accepts structured payload:
+      { "action": "refund"|"hold"|"review"|"rejected", "refund_amount": 10.00, "refund_percent": 50, "note": "..." }
+    This delegates to _perform_payment_action to unify logic with the new endpoint below.
     """
     if Payment is None:
         return jsonify({"error": "payments model not available"}), 500
@@ -297,65 +598,60 @@ def api_payment_refund(payment_id: int):
     if not p:
         return jsonify({"error": "not_found"}), 404
 
-    if p.provider != "paypal":
-        return jsonify({"error": "unsupported_provider", "detail": "refunds only supported for PayPal via this endpoint"}), 400
-
-    # Extract capture id
-    capture_id = p.provider_capture_id
-    if not capture_id:
-        return jsonify({"error": "no_capture_id", "detail": "payment record does not have a PayPal capture id"}), 400
-
     data = request.get_json(force=True, silent=True) or {}
-    amount = data.get("amount")
-    currency = data.get("currency") or p.currency or "USD"
-    note_to_payer = data.get("note_to_payer") or ""
+    action = (data.get("action") or "refund").strip().lower()
+    refund_amount = data.get("refund_amount") if "refund_amount" in data else data.get("amount")
+    refund_percent = data.get("refund_percent")
+    note = data.get("note") or data.get("note_to_payer") or ""
 
-    # Build the payload for PayPal refund endpoint
-    refund_payload = {}
-    if amount:
-        refund_payload = {
-            "amount": {
-                "value": str(amount),
-                "currency_code": currency
-            },
-            "note_to_payer": note_to_payer
-        }
+    actor = getattr(request, "payments_admin_user", None) or {"username": session.get("user", "unknown")}
+    result = _perform_payment_action(p, action=action, refund_amount=refund_amount, refund_percent=refund_percent, note=note, actor=actor)
+    # _perform_payment_action may return a tuple-like (dict, status) in error cases (HTTPError path). Normalize:
+    if isinstance(result, tuple):
+        body, status = result
+        return jsonify(body), status
+    return jsonify(result)
 
-    # Ensure PayPal credentials exist
-    if not get_paypal_access_token or not PAYPAL_BASE:
-        return jsonify({"error": "paypal_not_configured", "detail": "PayPal server-side integration not available"}), 500
 
+# New generic refund/action endpoint expected by updated frontend:
+# POST /payments-admin/api/refund
+# Payload: { payment_id, action: 'hold'|'review'|'refund'|'rejected', refund_amount?, refund_percent?, note? }
+@bp.route("/api/refund", methods=["POST"])
+@require_payments_admin
+def api_payment_refund_generic():
+    """
+    New frontend-friendly endpoint that accepts a JSON body with:
+      { "payment_id": 123, "action": "refund"|"hold"|"review"|"rejected", "refund_amount": 10.00, "refund_percent": 25, "note": "..." }
+
+    Behavior:
+      - 'hold' -> set payment.status = 'on_hold' and record admin action.
+      - 'review' -> set payment.status = 'disputed' and record admin action.
+      - 'refund' -> attempt provider refund (PayPal supported). Accepts refund_amount OR refund_percent.
+      - 'rejected'/'settled' -> mark the claim rejected and set payment.status='settled'; linked order (if present) marked 'paid'.
+    Returns JSON with success flag, message and updated_payment (best-effort).
+    """
+    if Payment is None:
+        return jsonify({"error": "payments model not available"}), 500
+    data = request.get_json(force=True, silent=True) or {}
+    payment_id = data.get("payment_id") or data.get("paymentId") or data.get("id")
+    if not payment_id:
+        return jsonify({"error": "payment_id required"}), 400
     try:
-        token = get_paypal_access_token()
-        url = f"{PAYPAL_BASE}/v2/payments/captures/{capture_id}/refund"
-        headers = {"Authorization": f"Bearer {token}",
-                   "Content-Type": "application/json"}
-        r = requests.post(url, headers=headers,
-                          json=refund_payload, timeout=20)
-        r.raise_for_status()
-        js = r.json()
+        pid = int(payment_id)
+    except Exception:
+        return jsonify({"error": "invalid_payment_id"}), 400
+    p = Payment.query.get(pid)
+    if not p:
+        return jsonify({"error": "payment_not_found"}), 404
 
-        # Persist refund info in raw_response (append)
-        try:
-            p.raw_response = (p.raw_response or {})
-            p.raw_response.setdefault("_refunds", []).append(js)
-            p.status = "refunded"
-            db.session.add(p)
-            db.session.commit()
-        except Exception:
-            db.session.rollback()
-            logger.exception(
-                "Failed to persist refund info for payment %s", p.id)
+    action = (data.get("action") or "refund").strip().lower()
+    refund_amount = data.get("refund_amount") if "refund_amount" in data else data.get("amount")
+    refund_percent = data.get("refund_percent")
+    note = data.get("note") or data.get("note_to_payer") or ""
 
-        return jsonify({"status": "refund_initiated", "refund_response": js})
-    except requests.HTTPError as exc:
-        logger.exception(
-            "PayPal refund HTTP error for capture %s: %s", capture_id, exc)
-        try:
-            return jsonify({"error": "paypal_refund_failed", "detail": exc.response.json()}), 502
-        except Exception:
-            return jsonify({"error": "paypal_refund_failed", "detail": str(exc)}), 502
-    except Exception as e:
-        logger.exception(
-            "Unexpected refund error for capture %s: %s", capture_id, e)
-        return jsonify({"error": "refund_failed", "detail": str(e)}), 500
+    actor = getattr(request, "payments_admin_user", None) or {"username": session.get("user", "unknown")}
+    result = _perform_payment_action(p, action=action, refund_amount=refund_amount, refund_percent=refund_percent, note=note, actor=actor)
+    if isinstance(result, tuple):
+        body, status = result
+        return jsonify(body), status
+    return jsonify(result)
