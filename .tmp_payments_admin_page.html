@@ -7,9 +7,9 @@
   <title>Payments Admin — WPerfumes</title>
 
   <!-- base admin styles -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+  <link rel="stylesheet" href="/static/css/admin.css">
   <!-- payments admin -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/payments_admin.css') }}">
+  <link rel="stylesheet" href="/static/css/payments_admin.css">
 
   <style>
     .small-muted {
@@ -191,10 +191,10 @@
   </div>
 
   <!-- Existing site script (keeps your current behavior) -->
-  <script src="{{ url_for('static', filename='js/payments-admin.js') }}"></script>
+  <script src="/static/js/payments-admin.js"></script>
 
   <!-- New panel script (load after existing script so we can integrate) -->
-  <!-- REMOVED duplicate payments_admin.js: <script src="{{ url_for('static', filename='js/payments_admin.js') }}"></script> -->
+  <!-- REMOVED duplicate payments_admin.js: <script src="/static/js/payments_admin.js"></script> -->
 </body>
 
 </html>

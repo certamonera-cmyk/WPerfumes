@@ -1,3 +1,4 @@
+# ======= UPDATED: routes_payments_admin.py =======
 # routes_payments_admin.py
 from __future__ import annotations
 import os
@@ -5,6 +6,9 @@ import json
 import logging
 from functools import wraps
 from typing import Dict, Any, List, Optional
+
+from datetime import datetime, timedelta, date
+import requests
 
 from flask import Blueprint, request, Response, render_template, jsonify, current_app, abort, session
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -25,8 +29,6 @@ try:
 except Exception:
     get_paypal_access_token = None
     PAYPAL_BASE = None
-
-import requests
 
 bp = Blueprint("payments_admin", __name__,
                template_folder="templates", url_prefix="/payments-admin")
@@ -460,6 +462,14 @@ def _perform_payment_action(payment: Any, action: str, refund_amount: Optional[f
 
 
 # ---------- Payments listing with optional server-side filtering ----------
+def _parse_iso_date_str(d: str) -> date:
+    """
+    Parse YYYY-MM-DD style date string into a date object.
+    Raises ValueError on bad input.
+    """
+    # Accept full ISO and also plain YYYY-MM-DD
+    return date.fromisoformat(d)
+
 
 @bp.route("/api/payments", methods=["GET"])
 @require_payments_admin
@@ -473,7 +483,87 @@ def api_list_payments():
         page = 1
         per_page = 25
 
-    q = Payment.query.order_by(Payment.created_at.desc())
+    # Duration filtering support:
+    # Accepts: duration=daily|yesterday|weekly|monthly|yearly|custom|all
+    # - daily (default/no param) => today from 00:00 UTC to next day 00:00 UTC
+    # - yesterday => previous calendar day
+    # - weekly => last 7 days inclusive (start = today 00:00 - 6 days)
+    # - monthly => last 30 days
+    # - yearly => last 365 days
+    # - custom => requires from & to query params in YYYY-MM-DD (inclusive)
+    # - all => no date-based filter
+    duration = (request.args.get("duration") or "").strip().lower()
+    if not duration:
+        # frontend historically omitted 'duration' for daily — treat missing as daily
+        duration = "daily"
+
+    now = datetime.utcnow()
+    today_start = datetime(now.year, now.month, now.day)
+    start_dt = None
+    end_dt = None
+
+    try:
+        if duration in ("daily", "today"):
+            start_dt = today_start
+            end_dt = today_start + timedelta(days=1)
+        elif duration == "yesterday":
+            start_dt = today_start - timedelta(days=1)
+            end_dt = today_start
+        elif duration in ("weekly", "week"):
+            # last 7 days including today
+            start_dt = today_start - timedelta(days=6)
+            end_dt = now
+        elif duration in ("monthly", "month"):
+            # last 30 days including today
+            start_dt = today_start - timedelta(days=29)
+            end_dt = now
+        elif duration in ("yearly", "year"):
+            # last 365 days
+            start_dt = today_start - timedelta(days=364)
+            end_dt = now
+        elif duration == "custom":
+            from_str = (request.args.get("from") or request.args.get("from_date") or "").strip()
+            to_str = (request.args.get("to") or request.args.get("to_date") or "").strip()
+            if not from_str or not to_str:
+                return jsonify({"error": "custom_duration_requires_from_and_to"}), 400
+            try:
+                d_from = _parse_iso_date_str(from_str)
+                d_to = _parse_iso_date_str(to_str)
+            except Exception:
+                return jsonify({"error": "invalid_from_or_to_date", "message": "Expected YYYY-MM-DD"}), 400
+            start_dt = datetime(d_from.year, d_from.month, d_from.day)
+            # make end exclusive (next day after 'to')
+            end_dt = datetime(d_to.year, d_to.month, d_to.day) + timedelta(days=1)
+        elif duration == "all":
+            start_dt = None
+            end_dt = None
+        else:
+            # Unknown duration — treat as daily by default to be safe
+            start_dt = today_start
+            end_dt = today_start + timedelta(days=1)
+    except Exception:
+        # If anything goes wrong computing dates, fall back to no date filter (safer)
+        logger.exception("Failed to compute duration bounds for %s", duration)
+        start_dt = None
+        end_dt = None
+
+    # Base query
+    q = Payment.query
+
+    # Apply date range filters if computed
+    if start_dt is not None and end_dt is not None:
+        try:
+            q = q.filter(Payment.created_at >= start_dt, Payment.created_at < end_dt)
+        except Exception:
+            logger.exception("Failed to apply created_at range filter; ignoring date filter")
+    elif start_dt is not None and end_dt is None:
+        # e.g. weekly/monthly/yearly where end is 'now' - use >= start_dt
+        try:
+            q = q.filter(Payment.created_at >= start_dt)
+        except Exception:
+            logger.exception("Failed to apply created_at >= filter; ignoring date filter")
+
+    q = q.order_by(Payment.created_at.desc())
 
     # Optional server-side filters (simple)
     status_filter = (request.args.get("status") or "").strip().lower()
