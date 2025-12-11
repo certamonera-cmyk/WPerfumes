@@ -1,0 +1,1496 @@
+:root {
+    --max-section-width: 1200px;
+    --section-padding: 5px 20px;
+    --card-gap: 15px;
+    --card-width: 150px;
+    --card-height: 295px;
+    /* increased to give room for larger image */
+    --card-radius: 12px;
+    --header-font: 'Playfair Display', serif;
+    --body-font: 'Roboto', sans-serif;
+    --primary-black: #000;
+    --primary-white: #FFF;
+    --light-silver: #CFD8DC;
+    --light-beige: #D7CCC8;
+    --gray: #333;
+    --beige-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    --beige-shadow-hover: 0 6px 10px rgba(0, 0, 0, 0.15);
+    --light-brown: #d7ccc8;
+    --dark-text: #3e2723;
+    --light-silver: #e0e0e0;
+    --white-bg: #ffffff;
+    --dark-accent: #000000;
+    --footer-link-color: #5d4037;
+    --light-green: #c8e6c9;
+    --cart-badge-color: #f44336;
+    --cart-badge-text: #fff;
+    --cart-modal-bg: rgba(0, 0, 0, 0.18);
+    --cart-modal-content: #fff;
+}
+
+/* Reset and base */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--body-font);
+    color: var(--primary-black);
+    background: linear-gradient(180deg, var(--primary-white) 0%, var(--light-beige) 100%);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+section,
+nav,
+footer {
+    padding: var(--section-padding);
+    margin: 0 auto 5px auto;
+    max-width: var(--max-section-width);
+    width: 100%;
+}
+
+/* Announcement bar: keep the element sticky across the viewport
+   but constrain the visual band to the same centered max-width as other sections.
+   This implementation does NOT require changing the HTML.
+*/
+#announcement {
+    background: transparent;
+    color: var(--primary-white);
+    text-align: left;
+    height: 30px;
+    padding: 0;
+    overflow: visible;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.announcement-scroller {
+    height: 100%;
+    width: 100%;
+    position: relative;
+    max-width: var(--max-section-width);
+    padding: 0 20px;
+    box-sizing: border-box;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    background: linear-gradient(90deg, var(--primary-black) 0%, var(--gray) 100%);
+    color: var(--primary-white);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.announcement-item {
+    height: 30px;
+    line-height: 30px;
+    font-size: 14px;
+    font-weight: 300;
+    letter-spacing: 1px;
+    animation: vertical-marquee 9s infinite;
+    position: absolute;
+    width: 100%;
+    opacity: 0;
+    left: 0;
+    padding-left: 4px;
+}
+
+.announcement-item:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.announcement-item:nth-child(2) {
+    animation-delay: 3s;
+}
+
+.announcement-item:nth-child(3) {
+    animation-delay: 6s;
+}
+
+@keyframes vertical-marquee {
+    0% {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+
+    10% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    30% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    40% {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+}
+
+
+.blinking-offer {
+    background: #fffbe7;
+    color: #b8860b;
+    border-radius: 6px;
+    padding: 5px 15px;
+    margin: 0 auto 5px auto;
+    text-align: center;
+    font-size: 1.08em;
+    font-weight: 500;
+    box-shadow: 0 2px 10px rgba(241, 196, 15, 0.07);
+    animation: blinking 1s linear infinite;
+    max-width: 700px;
+}
+
+@keyframes blinking {
+
+    0%,
+    49% {
+        opacity: 1;
+    }
+
+    50%,
+    100% {
+        opacity: 0.35;
+    }
+}
+
+/* NAVBAR
+   Adjust spacing and sizing so the whole nav fits on one horizontal line:
+   - reduce paddings and gaps
+   - prevent nav-tabs from wrapping
+   - make the center search smaller and fixed
+*/
+.navbar {
+    background-color: var(--light-brown);
+    padding: 6px 8px;
+    /* slightly narrower */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid var(--light-silver);
+    margin-bottom: 0;
+    width: 100%;
+    max-width: var(--max-section-width);
+    gap: 8px;
+}
+
+.brand-logo {
+    font-size: 20px;
+    /* slightly smaller */
+    font-weight: bold;
+    color: var(--dark-text);
+    text-decoration: none;
+    letter-spacing: 1px;
+    margin-right: 12px;
+    /* reduced spacing to save room */
+}
+
+/* NAV TABS: allow items to stay on a single line by reducing gap and preventing wrap */
+.nav-tabs {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: nowrap;
+    /* prevent wrapping */
+    gap: 4px;
+    /* reduced gap between items */
+    align-items: center;
+    overflow: hidden;
+    /* hide overflow if items are too many */
+    max-width: calc(100vw - 520px);
+    /* soft limit to avoid pushing center/right off-screen */
+}
+
+.nav-tabs li {
+    display: inline-block;
+    max-width: 140px;
+    /* safeguard long labels */
+}
+
+.nav-tabs li a {
+    text-decoration: none;
+    color: var(--dark-text);
+    padding: 6px 8px;
+    /* reduced padding */
+    display: block;
+    border-radius: 4px;
+    transition: background-color 0.3s, color 0.3s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 13px;
+    /* slightly smaller font */
+}
+
+.nav-tabs li a:hover {
+    background-color: var(--light-green);
+    color: var(--dark-accent);
+}
+
+/* Center search -- reduce size and fix width to keep layout stable.
+   The inline style in index.html sets a larger width; we use !important to ensure this stylesheet wins.
+*/
+.navbar-center {
+    flex: 0 0 160px;
+    /* reduced from 200px to create more room on the right */
+    margin: 0 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 140px;
+    max-width: 260px;
+}
+
+.search-container {
+    width: 100%;
+}
+
+.search-container input[type="text"],
+.navbar-center .search-container input#siteSearchInput {
+    width: 160px !important;
+    /* reduced width so right-side controls fit */
+    max-width: 45vw !important;
+    padding: 6px 10px;
+    border: 1px solid var(--light-silver);
+    background-color: var(--light-silver);
+    border-radius: 20px;
+    outline: none;
+    font-size: 13px;
+    color: var(--dark-text);
+}
+
+/* Navbar right: keep compact */
+.navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.navbar-right a {
+    text-decoration: none;
+    color: var(--dark-text);
+    padding: 6px 8px;
+    /* smaller padding */
+    margin-left: 6px;
+    border: 1px solid var(--dark-text);
+    border-radius: 4px;
+    transition: background-color 0.3s, color 0.3s;
+    font-size: 13px;
+    position: relative;
+}
+
+/* Cart button: icon and text horizontal and vertically centered */
+.cart-btn,
+#cartBtn,
+.navbar-right a.cart-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    margin-left: 6px;
+    border: 1px solid var(--dark-text);
+    border-radius: 4px;
+    text-decoration: none;
+    color: var(--dark-text);
+    position: relative;
+    font-size: 13px;
+    background: transparent;
+}
+
+/* Ensure the svg/icon does not force stacking */
+.cart-btn svg,
+.cart-btn img,
+.cart-btn .icon,
+#cartBtn svg,
+#cartBtn img,
+#cartBtn .icon {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+    vertical-align: middle;
+}
+
+/* Make the text label line up nicely */
+.cart-btn>span,
+#cartBtn>span {
+    display: inline-block;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+/* Cart count badge (small circular pill) */
+.cart-count-badge,
+#cartCountBadge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: var(--cart-badge-color);
+    color: var(--cart-badge-text);
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 12px;
+    min-width: 18px;
+    height: 18px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+/* Login/Sign-up Hover Menu Styles */
+.login-menu-container {
+    position: relative;
+    margin-left: 6px;
+}
+
+.login-submenu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 5px;
+    background-color: var(--white-bg);
+    border: 1px solid var(--light-silver);
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    min-width: 100px;
+    z-index: 20;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(5px);
+    transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+    padding: 5px 0;
+}
+
+.login-menu-container:hover .login-submenu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.login-submenu .signup-btn {
+    text-decoration: none;
+    color: var(--dark-text);
+    padding: 6px 10px;
+    display: block;
+    font-size: 13px;
+    border: none;
+    margin-left: 0;
+    transition: background-color 0.2s;
+    background-color: transparent;
+}
+
+.login-submenu .signup-btn:hover {
+    background-color: var(--light-silver);
+    color: var(--dark-text);
+    border-color: transparent;
+}
+
+/* Cart Modal Styles */
+.cart-modal-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: var(--cart-modal-bg);
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.cart-modal-content {
+    background: var(--cart-modal-content);
+    min-width: 340px;
+    max-width: 98vw;
+    max-height: 90vh;
+    border-radius: 14px;
+    box-shadow: 0 6px 40px rgba(0, 0, 0, 0.15);
+    padding: 30px 20px 20px 20px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Styles for the new Checkout Modal (merged from checkout.html) */
+#checkoutModalContent {
+    max-width: 540px;
+    width: 95%;
+    margin: 0;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px #eee;
+    padding: 24px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+#checkoutModalCloseBtn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 1.5em;
+    cursor: pointer;
+    color: var(--gray);
+    background: none;
+    border: none;
+}
+
+#checkoutModalContent h2 {
+    margin-top: 0;
+}
+
+#checkoutModalContent table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 18px;
+}
+
+#checkoutModalContent th,
+#checkoutModalContent td {
+    padding: 8px 4px;
+    border-bottom: 1px solid #eee;
+}
+
+#checkoutModalContent th {
+    background: #fafafa;
+    text-align: left;
+}
+
+#checkoutModalContent .total {
+    font-weight: bold;
+}
+
+#checkoutModalContent .form-group {
+    margin-bottom: 12px;
+}
+
+#checkoutModalContent label {
+    display: block;
+    margin-bottom: 3px;
+}
+
+#checkoutModalContent input[type="text"],
+#checkoutModalContent input[type="email"],
+#checkoutModalContent textarea {
+    width: 100%;
+    padding: 7px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+#checkoutModalContent .form-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+#checkoutModalContent .form-buttons button {
+    flex: 1;
+    color: #fff;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 5px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+#checkoutModalContent #checkoutBtn {
+    background: #2d8f7c;
+}
+
+#checkoutModalContent #buyNowBtn {
+    background-color: #27ae60;
+}
+
+#checkoutModalContent .form-buttons button:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
+#checkoutModalContent .form-buttons button:disabled {
+    background: #aaa;
+    cursor: not-allowed;
+}
+
+#checkoutModalContent .cart-empty {
+    color: #e74c3c;
+    text-align: center;
+    font-size: 1.1em;
+    margin: 30px 0;
+}
+
+#checkoutModalContent .success-msg {
+    color: #27ae60;
+    font-weight: bold;
+    margin: 16px 0;
+}
+
+#checkoutModalContent .error-msg {
+    color: #e74c3c;
+    margin: 12px 0;
+}
+
+#checkoutModalContent .payment-dropdown-label {
+    margin-top: 5px;
+    font-size: 1em;
+    font-weight: 500;
+    color: #218c6e;
+}
+
+#checkoutModalContent .payment-select {
+    width: 100%;
+    padding: 7px;
+    margin-top: 5px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 1em;
+}
+
+#checkoutModalContent .qty-control-btn {
+    background: #f0f0f0;
+    color: #333;
+    border: 1px solid #ccc;
+    padding: 0 8px;
+    border-radius: 4px;
+    font-size: 1em;
+    line-height: 1;
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+#checkoutModalContent .qty-control-btn:active {
+    background: #e0e0e0;
+}
+
+/* Discount info message for promo/checkout discount */
+.discount-info {
+    background: #f1c40f1a;
+    color: #b8860b;
+    border-radius: 4px;
+    padding: 7px 10px;
+    font-size: 1em;
+    font-weight: 500;
+    margin-bottom: 8px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.cart-modal-header {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.cart-modal-close {
+    font-size: 1.25em;
+    cursor: pointer;
+    padding: 0 8px;
+    color: var(--gray);
+    background: none;
+    border: none;
+    transition: color 0.2s;
+}
+
+.cart-modal-close:hover {
+    color: var(--cart-badge-color);
+}
+
+.cart-list {
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.cart-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--light-silver);
+    gap: 8px;
+}
+
+.cart-list-details {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.cart-list-img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    border-radius: 6px;
+    background: var(--light-silver);
+}
+
+.cart-list-title {
+    font-size: 1em;
+    font-family: var(--header-font);
+    font-weight: 500;
+    color: var(--primary-black);
+    margin-bottom: 2px;
+}
+
+.cart-list-price {
+    font-size: 0.98em;
+    color: var(--gray);
+}
+
+.cart-qty-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.cart-qty-btn {
+    border: none;
+    background: var(--light-green);
+    color: var(--dark-accent);
+    font-size: 1em;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-weight: bold;
+}
+
+.cart-qty-btn:hover {
+    background: #a5d6a7;
+}
+
+.cart-qty-display {
+    min-width: 28px;
+    text-align: center;
+    font-weight: 500;
+    font-family: var(--body-font);
+    font-size: 1em;
+}
+
+.cart-modal-footer {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 15px;
+}
+
+.cart-modal-total {
+    font-size: 1.08em;
+    font-weight: bold;
+}
+
+.cart-modal-empty {
+    text-align: center;
+    color: var(--gray);
+    margin: 18px 0;
+    font-size: 1.08em;
+}
+
+.add-cart-btn {
+    margin-top: 6px;
+    /* reduced vertical spacing to bring CTA closer to price */
+    padding: 6px 12px;
+    /* slightly smaller padding so button doesn't push content down */
+    background: var(--light-green);
+    color: var(--dark-accent);
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.add-cart-btn:hover {
+    background: #a5d6a7;
+}
+
+/* --- HERO SECTION ENHANCEMENTS --- */
+#hero {
+    background: linear-gradient(270deg, #A2D9A5, #fffbe7, #f8c471, #A2D9A5);
+    background-size: 600% 600%;
+    animation: heroGradientMove 12s ease-in-out infinite;
+    text-align: center;
+    padding: 5px 0;
+    position: relative;
+    overflow: auto;
+    /* Allows hero to grow if content is larger */
+    min-height: 200px;
+}
+
+#hero .hero-inner p,
+#hero .hero-inner .hero-cta-btn,
+#hero .hero-inner .hero-badge {
+    /* Halve font sizes and spacing for compact view */
+    font-size: 90%;
+    /* Optional: fine-tune individual elements below for best fit */
+}
+
+#hero .hero-inner h2 {
+    margin-bottom: 5px;
+}
+
+#hero .hero-inner .hero-cta-btn {
+    padding: 8px 16px;
+    margin-top: 10px;
+}
+
+#hero .hero-inner .hero-badge {
+    padding: 5px 10px;
+    margin-top: 8px;
+    font-size: 0.9em;
+}
+
+@keyframes heroGradientMove {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+#hero h2 {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: heroHeadingIn 1.2s 0.3s cubic-bezier(.77, 0, .18, 1) forwards;
+    font-family: var(--header-font);
+    font-size: 50px;
+    /* Size of letters in Handpicked Luxury Fragrances */
+    color: var(--primary-black);
+    margin-bottom: 10px;
+    letter-spacing: 0.02em;
+    font-weight: 800;
+}
+
+@keyframes heroHeadingIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#hero p {
+    opacity: 0;
+    animation: heroSubFade 1.2s 0.7s cubic-bezier(.77, 0, .18, 1) forwards;
+    font-size: 2.8rem;
+    color: var(--gray);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+@keyframes heroSubFade {
+    to {
+        opacity: 1;
+    }
+}
+
+.hero-cta-btn {
+    display: inline-block;
+    margin-top: 22px;
+    padding: 13px 32px;
+    background: linear-gradient(90deg, #27ae60 0%, #A2D9A5 100%);
+    color: #fff;
+    font-size: 1.17em;
+    font-weight: bold;
+    border-radius: 30px;
+    text-decoration: none;
+    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.18);
+    transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+    letter-spacing: 0.04em;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-cta-btn:hover,
+.hero-cta-btn:focus {
+    background: linear-gradient(90deg, #218c6e 0%, #76d7c4 100%);
+    transform: translateY(-3px) scale(1.04);
+    box-shadow: 0 8px 24px rgba(39, 174, 96, 0.23);
+    color: #fff;
+}
+
+.hero-sparkle {
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    background: radial-gradient(circle, #fffbe7 40%, #f8c471 100%);
+    border-radius: 50%;
+    opacity: 0.8;
+    pointer-events: none;
+    animation: sparkleMove .9s ease-out;
+}
+
+@keyframes sparkleMove {
+    from {
+        transform: scale(0.2) translateY(0);
+    }
+
+    to {
+        transform: scale(1.3) translateY(-16px);
+        opacity: 0;
+    }
+}
+
+.hero-badge {
+    margin-top: 15px;
+    display: inline-block;
+    background: #f8c471;
+    color: #3e2723;
+    font-weight: 500;
+    border-radius: 18px;
+    padding: 7px 18px;
+    font-size: 1em;
+    box-shadow: 0 2px 8px rgba(248, 196, 113, 0.13);
+    animation: badgePop 1s .8s cubic-bezier(.77, 0, .18, 1) backwards;
+}
+
+@keyframes badgePop {
+    from {
+        opacity: 0;
+        transform: scale(0.7);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.hero-main-img {
+    width: 180px;
+    max-width: 40vw;
+    margin: 0 auto;
+    display: block;
+    animation: floatImg 3.5s ease-in-out infinite;
+}
+
+@keyframes floatImg {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-18px);
+    }
+}
+
+#hero-audio-player {
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    z-index: 10;
+    background: #fffbe5;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(241, 196, 15, 0.07);
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 74px;
+}
+
+#hero-audio-player audio {
+    display: none;
+}
+
+#heroAudioMuteBtn {
+    background: none;
+    border: none;
+    font-size: 1.3em;
+    cursor: pointer;
+    color: #b8860b;
+    outline: none;
+    padding: 0 4px;
+    transition: color 0.2s;
+}
+
+#heroAudioMuteBtn:hover #heroAudioMuteIcon {
+    color: #e67e22;
+}
+
+
+#hero {
+    overflow: visible;
+    position: relative;
+    padding: 10px 0;
+}
+
+/* NEW scaling wrapper for proportional scaling */
+.hero-scaling-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hero-inner {
+    width: auto;
+    max-width: none;
+    /* Remove container/max-width styles if present */
+}
+
+/* Scaling at breakpoints */
+@media (max-width: 980px) {
+    .hero-scaling-wrapper {
+        transform: scale(0.95);
+        transform-origin: top center;
+    }
+}
+
+@media (max-width: 700px) {
+    .hero-scaling-wrapper {
+        transform: scale(0.7);
+        transform-origin: top center;
+    }
+}
+
+@media (max-width: 500px) {
+    .hero-scaling-wrapper {
+        transform: scale(0.55);
+        transform-origin: top center;
+    }
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-left: 20px;
+    padding-right: 20px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+
+
+#hero p {
+    font-size: 2.2rem;
+    color: var(--gray);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.section-heading-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5em;
+    justify-content: flex-start;
+}
+
+.section-heading-row h3 {
+    font-family: var(--header-font);
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--primary-black);
+    text-align: left;
+    position: relative;
+    display: inline-block;
+}
+
+.section-heading-row.signature h3 {
+    position: relative;
+    z-index: 1;
+}
+
+.section-heading-row.signature h3::after {
+    content: '';
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 100%;
+    height: 4px;
+    width: 100%;
+    background: linear-gradient(90deg, var(--accent, #f1c40f) 0%, var(--light-silver) 100%);
+    border-radius: 2px;
+    margin-top: 10px;
+    animation: underline-slide 2s cubic-bezier(0.31, 0.53, 0.43, 0.88) forwards;
+}
+
+@keyframes underline-slide {
+    0% {
+        width: 0;
+        opacity: 0.5;
+    }
+
+    70% {
+        width: 100%;
+        opacity: 1;
+    }
+
+    100% {
+        width: 100%;
+        opacity: 1;
+    }
+}
+
+.section-heading-row h3:not(.signature) {
+    position: relative;
+}
+
+.section-heading-row h3:not(.signature)::after {
+    content: '';
+    display: block;
+    width: 50px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--light-silver), var(--primary-black));
+    margin-top: 5px;
+}
+
+hr.section-divider {
+    border: 0;
+    height: 1px;
+    background: var(--light-silver);
+    margin: 5px 0 10px 0;
+    width: 100%;
+}
+
+#signature .card-section-wrapper {
+    overflow: hidden;
+    max-width: var(--max-section-width);
+    margin: 0 auto;
+    position: relative;
+}
+
+#signature .card-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: var(--card-gap);
+    padding: 5px 0;
+    width: max-content;
+    min-height: var(--card-height);
+    will-change: transform;
+}
+
+#signature .card-container:hover {
+    animation-play-state: paused;
+}
+
+.card-section-wrapper:not(#signature .card-section-wrapper) {
+    max-width: var(--max-section-width);
+    margin: 0 auto;
+    overflow-x: auto;
+    overflow-y: visible;
+}
+
+.card-container:not(#signature .card-container) {
+    display: flex;
+    gap: var(--card-gap);
+    padding: 5px 0;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    min-height: var(--card-height);
+}
+
+/* Product card design improvements:
+   - Larger visual area for the image (occupies more of the card).
+   - Product details (name, price, CTA) are pushed to the bottom by using margin-top: auto
+     so they sit close to the CTA and reduce vertical gaps.
+   - Reduced padding and smaller CTA margin to compress vertical spacing.
+*/
+.product-card {
+    width: var(--card-width);
+    height: var(--card-height);
+    background: var(--primary-white);
+    border: none;
+    border-radius: var(--card-radius);
+    overflow: hidden;
+    box-shadow: var(--beige-shadow);
+    transition: transform 0.3s, box-shadow 0.3s;
+    text-align: center;
+    padding: 8px;
+    /* reduced padding so image can grow */
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    cursor: pointer;
+}
+
+/* Slightly larger hover scale retained */
+.product-card:hover {
+    transform: scale(1.08) translateY(-7px);
+    box-shadow: var(--beige-shadow-hover);
+    z-index: 9;
+}
+
+/* Make the image wrapper use the majority of the card (larger image) */
+.card-image-wrapper {
+    width: 100%;
+    height: 70%;
+    /* increased from 70% -> larger image area */
+    background: none;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin-bottom: 6px;
+    /* small gap */
+    flex-shrink: 0;
+}
+
+/* Ensure image fills wrapper height while maintaining aspect ratio */
+.product-image {
+    height: 100%;
+    width: auto;
+    object-fit: contain;
+    max-width: 100%;
+    transition: transform 0.25s ease;
+}
+
+/* subtle zoom on hover for more visual punch */
+.product-card:hover .product-image {
+    transform: scale(1.03);
+}
+
+/* Card details are pushed to the bottom area to keep name & price near CTA */
+.card-details {
+    width: 100%;
+    margin-top: auto;
+    /* push details to bottom, creating space above for image */
+    padding: 6px 4px;
+    /* small padding so text is close together */
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    /* reduced gap between name and price */
+    align-items: center;
+    justify-content: center;
+}
+
+/* Slightly tighter typography */
+.card-name {
+    font-family: 'Georgia', serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--dark-text);
+    margin-bottom: 0;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    width: 100%;
+}
+
+.card-details small {
+    font-size: 0.9rem;
+    color: var(--gray);
+    margin-bottom: 0;
+}
+
+#testimonials {
+    background: linear-gradient(180deg, var(--primary-white) 0%, var(--light-beige) 100%);
+    padding: 5px 20px;
+    text-align: center;
+    max-width: var(--max-section-width);
+    margin: 0 auto 5px auto;
+    width: 100%;
+}
+
+#testimonials h3 {
+    font-family: var(--header-font);
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+    color: var(--primary-black);
+    text-align: center;
+    position: relative;
+}
+
+#testimonials h3::after {
+    content: '';
+    width: 50px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--light-silver), var(--primary-black));
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#testimonials p {
+    font-style: italic;
+    color: var(--gray);
+    max-width: 600px;
+    margin: 10px auto;
+}
+
+#footer {
+    background: linear-gradient(90deg, var(--primary-black) 0%, var(--gray) 100%);
+    color: var(--primary-white);
+    text-align: center;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    margin-bottom: 0;
+    max-width: var(--max-section-width);
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Overlay styles */
+#productDetailOverlay {
+    display: none;
+    position: absolute;
+    z-index: 10000;
+    box-shadow: 0 10px 40px #999;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e0e0e0;
+    max-width: 340px;
+    min-width: 280px;
+    padding: 22px;
+    font-family: 'Georgia', serif;
+    transition: transform 0.18s;
+    transform: scale(1.04);
+}
+
+#productDetailOverlay h2 {
+    margin: 0 0 8px 0;
+    font-size: 1.15em;
+}
+
+#productDetailOverlay .overlay-brand {
+    color: #5d4037;
+    margin-bottom: 6px;
+    font-size: 1em;
+}
+
+#productDetailOverlay .overlay-price {
+    color: #cc0000;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+#productDetailOverlay .overlay-desc {
+    font-size: 0.98em;
+    color: #444;
+    margin-bottom: 8px;
+}
+
+#productDetailOverlay .overlay-notes {
+    font-size: 0.95em;
+    color: #218c6e;
+    margin-bottom: 5px;
+}
+
+#productDetailOverlay .overlay-tags {
+    font-size: 0.92em;
+    color: #348;
+    margin-bottom: 7px;
+}
+
+#productDetailOverlay img {
+    width: 150px;
+    height: 150px;
+    object-fit: contain;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+#productDetailOverlay #overlayCloseBtn {
+    position: absolute;
+    top: 9px;
+    right: 12px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #888;
+}
+
+#productDetailOverlay #overlayCloseBtn:hover {
+    color: #e74c3c;
+}
+
+@media (max-width: 1024px) {
+
+    .card-section-wrapper,
+    #testimonials,
+    #announcement,
+    #footer,
+    .navbar {
+        max-width: 100vw;
+    }
+}
+
+/* Smaller screens: reduce search width further and allow nav items to shrink */
+@media (max-width: 900px) {
+    .navbar-center {
+        flex: 0 0 160px;
+        max-width: 180px;
+    }
+
+    .search-container input#siteSearchInput {
+        width: 160px !important;
+        max-width: 40vw !important;
+    }
+
+    .nav-tabs li a {
+        padding: 6px 6px;
+        font-size: 12px;
+    }
+
+    .nav-tabs {
+        max-width: calc(100vw - 360px);
+    }
+}
+
+@media (max-width: 768px) {
+    .product-card {
+        width: 120px;
+        height: 200px;
+        /* slightly smaller on mobile but keep image proportionally large */
+    }
+
+    /* adjust image wrapper proportion for smaller cards */
+    .card-image-wrapper {
+        height: 72%;
+    }
+
+    #hero h2 {
+        font-size: 2em;
+    }
+
+    #hero p {
+        font-size: 2rem;
+    }
+
+    .nav-tabs li a {
+        padding: 6px 6px;
+        font-size: 12px;
+    }
+
+    #testimonials,
+    #announcement,
+    #footer,
+    .navbar {
+        max-width: none;
+        width: 100%;
+    }
+
+    .section-heading-row h3::after {
+        margin-top: 2px;
+        width: 30px;
+    }
+
+    /* On smaller screens reduce the inner announcement padding */
+    .announcement-scroller {
+        padding: 0 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar {
+        padding: 6px 6px;
+    }
+
+    .brand-logo {
+        font-size: 18px;
+    }
+
+    .navbar-center {
+        flex: 0 0 120px;
+    }
+
+    .search-container input#siteSearchInput {
+        width: 120px !important;
+        max-width: 36vw !important;
+    }
+
+    .nav-tabs li a {
+        padding: 6px 6px;
+        font-size: 11px;
+    }
+
+    .nav-tabs {
+        max-width: calc(100vw - 260px);
+    }
+}
+
+@media (max-width: 320px) {
+    .nav-tabs li a {
+        padding: 6px 6px;
+        font-size: 10px;
+    }
+
+    #hero h2 {
+        font-size: 1.6em;
+    }
+
+    .product-card {
+        width: 110px;
+        height: 170px;
+    }
+
+    .card-image-wrapper {
+        height: 68%;
+    }
+
+    .card-name {
+        font-size: 12px;
+    }
+
+    .section-heading-row h3 {
+        font-size: 1.2rem;
+    }
+}
+
+/* Media query to hide non-signature sections on mobile devices */
+@media (max-width: 768px) {
+
+    /* These IDs correspond to the keys in the SECTIONS object in main.js */
+    #men,
+    #women,
+    #offers {
+        display: none !important;
+        /* Hides the entire section element */
+    }
+}

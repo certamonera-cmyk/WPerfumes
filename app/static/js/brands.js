@@ -1,13 +1,8 @@
-// app/static/js/men.js
-// Complete, defensive Men page script (full).
-// - Ensures Top Picks render a visible product name directly under the product image.
-// - Robust product resolution (id, _id, product_id, title matching).
-// - Defensive network handling, logging, and small debug API.
-// - Designed to run only on /men and /women pages (guarded).
-//
-// Notes:
-// - This script expects main.js (shared cart/checkout functions like addToCart) to be loaded first.
-// - Styling for the name is applied inline to guarantee visibility; you can move this to CSS later if desired.
+// app/static/js/brands.js
+// Derived from the previous men.js implementation — adapted and renamed to brands.js.
+// - Runs on /men, /women and /brands pages (guarded).
+// - Renders Top Picks and provides a paginated brands view (auto-slide).
+// - Exposes a debug API under window.brandsPage
 
 (function () {
     'use strict';
@@ -18,9 +13,11 @@
     const API = "/api";
     const BRANDSPERPAGE = 5;
     const AUTO_SLIDE_DURATION = 4000;
+    const TOPPICKS_VISIBLE = 5; // visible items in top-picks at once (desktop)
+    const TOPPICKS_SLIDE_INTERVAL = 4000; // ms
     const PLACEHOLDER_IMG = (typeof window !== 'undefined' && window.PLACEHOLDER_IMG) ? window.PLACEHOLDER_IMG : '/static/images/placeholder.jpg';
     const DEFAULT_PRODUCT_IMG = (typeof window !== 'undefined' && window.DEFAULT_PRODUCT_IMG) ? window.DEFAULT_PRODUCT_IMG : '/static/images/default.jpg';
-    const LOG_PREFIX = 'men.js:';
+    const LOG_PREFIX = 'brands.js:';
 
     // -----------------------------------------------------------------------
     // Internal state
@@ -29,10 +26,18 @@
     let currentBrands = [];
     let currentPage = 1;
     let autoSlideInterval = null;
+    let currentSearch = '';
 
-    // Page guard: only run heavy init on /men or /women
+    // Top picks slider state
+    let topPicksInterval = null;
+    let topPicksCurrentPage = 0;
+    let topPicksPages = 1;
+    let topPicksWrapper = null;
+    let topPicksTrack = null;
+
+    // Page guard: run heavy init on /men, /women, or /brands
     const _PATHNAME = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname : '';
-    const IS_MEN_OR_WOMEN_PAGE = _PATHNAME.startsWith('/men') || _PATHNAME.startsWith('/women');
+    const IS_BRANDS_MEN_WOMEN_PAGE = _PATHNAME.startsWith('/men') || _PATHNAME.startsWith('/women') || _PATHNAME.startsWith('/brands');
 
     // -----------------------------------------------------------------------
     // Helpers
@@ -105,32 +110,59 @@
     // Brands list (paginated) + auto-pagination controls
     // -----------------------------------------------------------------------
     function displayBrands(brands = [], page = 1) {
-        const brandList = document.getElementById('brandList');
-        if (!brandList) { warn('#brandList not found'); return; }
+        const brandList = document.getElementById('brandList') || document.getElementById('brandGrid');
+        if (!brandList) { warn('#brandList/#brandGrid not found'); return; }
         brandList.style.opacity = 0;
         setTimeout(() => {
-            brandList.innerHTML = '';
+            // If this is the ul (#brandList) layout, render li; if grid, assume cards already
+            const isUL = brandList.tagName.toLowerCase() === 'ul';
+            if (isUL) brandList.innerHTML = '';
+            else brandList.innerHTML = '';
+
             const start = (page - 1) * BRANDSPERPAGE;
             const items = (brands || []).slice(start, start + BRANDSPERPAGE);
             if (!items.length) {
-                brandList.innerHTML = `<li style="color:#888;padding:12px;">No brands found.</li>`;
+                if (isUL) brandList.innerHTML = `<li style="color:#888;padding:12px;">No brands found.</li>`;
+                else {
+                    const empty = document.createElement('div');
+                    empty.style.color = '#888';
+                    empty.style.padding = '12px';
+                    empty.textContent = 'No brands found.';
+                    brandList.appendChild(empty);
+                }
                 brandList.style.opacity = 1;
                 return;
             }
             for (const b of items) {
                 const brandName = b.name || 'Unknown Brand';
-                const li = document.createElement('li');
-                li.innerHTML = `
-          <div class="product-image-container">
-            <img src="${toStaticUrl(b.logo)}" alt="${escapeHtmlAttr(brandName)}" class="product-image">
-          </div>
-          <div class="product-name" title="${escapeHtmlAttr(brandName)}">${escapeText(brandName)}</div>
-        `;
-                li.setAttribute('data-brand', (b.name || '').replace(/ /g, '_'));
-                li.addEventListener('click', () => {
-                    window.location.href = `/brand?brand=${encodeURIComponent(brandName)}`;
-                });
-                brandList.appendChild(li);
+                if (isUL) {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+              <div class="product-image-container">
+                <img src="${toStaticUrl(b.logo || b.logo_url)}" alt="${escapeHtmlAttr(brandName)}" class="product-image">
+              </div>
+              <div class="product-name" title="${escapeHtmlAttr(brandName)}">${escapeText(brandName)}</div>
+            `;
+                    li.setAttribute('data-brand', (b.name || '').replace(/ /g, '_'));
+                    li.addEventListener('click', () => {
+                        window.location.href = `/brand?brand=${encodeURIComponent(brandName)}`;
+                    });
+                    brandList.appendChild(li);
+                } else {
+                    const a = document.createElement('a');
+                    a.className = 'brand-link';
+                    a.href = `/brand?brand=${encodeURIComponent((brandName || '').replace(/\s+/g, '_'))}`;
+                    a.setAttribute('aria-label', `View ${brandName}`);
+                    const card = document.createElement('div');
+                    card.className = 'brand-card';
+                    // Render ONLY image + name (no description) to meet design requirement
+                    card.innerHTML = `
+                      <img src="${toStaticUrl(b.logo || b.logo_url)}" alt="${escapeHtmlAttr(brandName)}">
+                      <h3>${escapeText(brandName)}</h3>
+                    `;
+                    a.appendChild(card);
+                    brandList.appendChild(a);
+                }
             }
             brandList.style.opacity = 1;
             log('displayBrands', 'page', page, 'shown', items.length);
@@ -201,20 +233,126 @@
     }
 
     // -----------------------------------------------------------------------
+    // Top Picks slider helpers
+    // -----------------------------------------------------------------------
+    function setupTopPicksSlider(wrapper, track) {
+        try {
+            if (!wrapper || !track) return;
+            topPicksWrapper = wrapper;
+            topPicksTrack = track;
+            const cardCount = track.children.length;
+            // compute visible count based on CSS breakpoints; keep default as TOPPICKS_VISIBLE
+            const visible = computeVisibleCount();
+            topPicksPages = Math.max(1, Math.ceil(cardCount / visible));
+            topPicksCurrentPage = 0;
+            // initial transform reset
+            track.style.transform = 'translateX(0px)';
+            track.style.transition = 'transform 0.6s cubic-bezier(.22,.9,.32,1)';
+
+            // pause on hover/focus
+            wrapper.addEventListener('mouseenter', pauseTopPicksAutoSlide);
+            wrapper.addEventListener('focusin', pauseTopPicksAutoSlide);
+            wrapper.addEventListener('mouseleave', resumeTopPicksAutoSlide);
+            wrapper.addEventListener('focusout', resumeTopPicksAutoSlide);
+
+            // recompute pages and re-position on resize
+            window.addEventListener('resize', () => {
+                const prevPages = topPicksPages;
+                const v = computeVisibleCount();
+                const newPages = Math.max(1, Math.ceil(cardCount / v));
+                topPicksPages = newPages;
+                // clamp current page
+                if (topPicksCurrentPage >= newPages) topPicksCurrentPage = 0;
+                // apply immediate transform to keep correct position
+                applyTopPicksTransform();
+            });
+
+            // start auto-slide if multiple pages
+            if (topPicksPages > 1) {
+                startTopPicksAutoSlide();
+            } else {
+                stopTopPicksAutoSlide();
+            }
+
+            log('TopPicks slider initialized', { cardCount, visible, topPicksPages });
+        } catch (e) {
+            warn('setupTopPicksSlider failed', e);
+        }
+    }
+
+    function computeVisibleCount() {
+        // align with CSS breakpoints: <520 => 2, <900 => 3, else 5
+        try {
+            const w = (typeof window !== 'undefined') ? window.innerWidth : 1200;
+            if (w <= 520) return 2;
+            if (w <= 900) return 3;
+            return TOPPICKS_VISIBLE;
+        } catch (e) {
+            return TOPPICKS_VISIBLE;
+        }
+    }
+
+    function applyTopPicksTransform() {
+        if (!topPicksWrapper || !topPicksTrack) return;
+        try {
+            // translate by page * wrapper width (this ensures exactly one page shift)
+            const pageWidth = topPicksWrapper.clientWidth;
+            const x = topPicksCurrentPage * pageWidth;
+            topPicksTrack.style.transform = `translateX(-${x}px)`;
+        } catch (e) {
+            warn('applyTopPicksTransform failed', e);
+        }
+    }
+
+    function nextTopPicksPage() {
+        try {
+            if (!topPicksTrack) return;
+            topPicksCurrentPage++;
+            if (topPicksCurrentPage >= topPicksPages) {
+                topPicksCurrentPage = 0; // loop back
+            }
+            applyTopPicksTransform();
+        } catch (e) {
+            warn('nextTopPicksPage error', e);
+        }
+    }
+
+    function startTopPicksAutoSlide() {
+        if (topPicksInterval !== null) return;
+        if (!topPicksTrack || !topPicksWrapper) return;
+        if (topPicksPages <= 1) return;
+        topPicksInterval = setInterval(nextTopPicksPage, TOPPICKS_SLIDE_INTERVAL);
+        log('top picks auto-slide started');
+    }
+
+    function stopTopPicksAutoSlide() {
+        if (topPicksInterval !== null) {
+            clearInterval(topPicksInterval);
+            topPicksInterval = null;
+            log('top picks auto-slide stopped');
+        }
+    }
+
+    function pauseTopPicksAutoSlide() {
+        stopTopPicksAutoSlide();
+    }
+
+    function resumeTopPicksAutoSlide() {
+        // resume only if there is more than 1 page
+        if (topPicksPages > 1) startTopPicksAutoSlide();
+    }
+
+    // -----------------------------------------------------------------------
     // Load dynamic Top Picks by Lifestyle
-    // - New rule: Product name must appear immediately below the image.
-    // - We insert a dedicated .dynamic-top-pick-name element right after the image wrapper
-    //   and set its textContent (not innerHTML) to avoid HTML injection and ensure visibility.
     // -----------------------------------------------------------------------
     async function loadDynamicTopPicksByLifestyle() {
         try {
-            // fetch top picks and products in parallel
             const [tpRes, prodRes] = await Promise.all([fetch(`${API}/top-picks`), fetch(`${API}/products`)]);
             if (!tpRes.ok) throw new Error(`top-picks fetch failed (${tpRes.status})`);
             const topPicks = await tpRes.json();
             const products = prodRes.ok ? await prodRes.json() : [];
 
-            // Build product map (support id, _id, product_id)
+            // (Rendering code unchanged from earlier version but adapted to use slider track)
             const prodMap = {};
             if (Array.isArray(products)) {
                 products.forEach(p => {
@@ -228,15 +366,12 @@
             const container = document.getElementById('dynamicTopPicksByLifestyleContainer');
             if (!container) { warn('dynamicTopPicks container missing'); return; }
 
-            // Clear existing content
             container.innerHTML = '';
-
-            // If none, show men/women-only fallback message
             if (!picks || picks.length === 0) {
                 try {
                     const path = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname : '';
-                    const isMenOrWomenPage = path.startsWith('/men') || path.startsWith('/women');
-                    if (isMenOrWomenPage) {
+                    const isTargetPage = path.startsWith('/men') || path.startsWith('/women') || path.startsWith('/brands');
+                    if (isTargetPage) {
                         container.innerHTML = "<div style='color:#888;font-size:1.05em'>No Top Picks by Lifestyle available. Check back soon!</div>";
                     } else {
                         container.innerHTML = "";
@@ -247,9 +382,16 @@
                 return;
             }
 
-            // Render picks
+            // Create slider wrapper + track
+            const wrapper = document.createElement('div');
+            wrapper.className = 'slider-wrapper';
+            const track = document.createElement('div');
+            track.className = 'slider-track';
+            wrapper.appendChild(track);
+            container.appendChild(wrapper);
+
+            // Render picks into the track
             for (const tp of picks) {
-                // Resolve product
                 let prod = null;
                 try {
                     if (tp && tp.product_id) {
@@ -272,23 +414,18 @@
                     warn('product resolution failure', tp, e);
                 }
 
-                // Determine image, title, brand, price, reviews
                 const imgUrl = prod ? (prod.image_url ? toStaticUrl(prod.image_url) : (prod.image ? toStaticUrl(prod.image) : DEFAULT_PRODUCT_IMG)) : (tp.image_url ? toStaticUrl(tp.image_url) : DEFAULT_PRODUCT_IMG);
                 const resolvedTitle = (prod && (prod.title || prod.name)) || tp.product_title || '';
                 const resolvedBrand = (prod && (prod.brand || prod.manufacturer)) || tp.brand || '';
                 const resolvedPrice = (prod && (typeof prod.price !== 'undefined' && prod.price !== null)) ? prod.price : (tp.price || '—');
-                const resolvedReviews = (prod && (typeof prod.reviews_count !== 'undefined' && prod.reviews_count !== null)) ? prod.reviews_count : (tp.reviews_count || 0);
 
-                // Create card DOM: image -> name (new rule) -> details -> actions
                 const card = document.createElement('div');
                 card.className = 'dynamic-top-pick-card';
 
-                // Build markup: image wrapper then a dedicated name element (guarantee it's right below image)
                 card.innerHTML = `
           <div class="image-wrapper" style="background:#fff;">
             <img src="${escapeHtmlAttr(imgUrl)}" alt="${escapeHtmlAttr(resolvedTitle || 'Product')}" />
           </div>
-          <!-- Name element MUST appear right below the image per requested rule -->
           <div class="dynamic-top-pick-name" aria-hidden="false" role="heading" style="
               padding: 8px 12px 0 12px;
               font-weight:700;
@@ -301,11 +438,6 @@
           "></div>
           <div class="dynamic-top-pick-details" style="padding:6px 12px 10px 12px;">
             <div class="dynamic-top-pick-brand" style="font-size:0.95em;color:#2d8f7c;margin-top:6px;"></div>
-            <div class="dynamic-top-pick-meta" style="display:flex;gap:8px;align-items:center;font-size:0.9em;color:#444;margin-top:6px;">
-              <div class="dynamic-top-pick-sales" style="color:#c88c00;">Top Seller: ${tp.sales_count || 0} sold</div>
-              <div aria-hidden="true">·</div>
-              <div class="dynamic-top-pick-reviews">⭐ ${resolvedReviews} reviews</div>
-            </div>
             <div class="dynamic-top-pick-tags" style="font-size:0.87em;color:#666;margin-top:6px;">Lifestyle: ${Array.isArray(tp.tags) ? tp.tags.join(', ') : (tp.tags || '')}</div>
             <div class="dynamic-top-pick-price" style="font-weight:700;color:#e53935;margin-top:6px;">${(resolvedPrice === '—') ? '' : 'AED ' + Number(resolvedPrice).toFixed(2)}</div>
           </div>
@@ -315,39 +447,32 @@
           </div>
         `;
 
-                // Append card
-                container.appendChild(card);
+                // append card to track (not to container)
+                track.appendChild(card);
 
-                // Set the name textContent explicitly (avoid innerHTML usage for safety)
                 try {
                     const nameEl = card.querySelector('.dynamic-top-pick-name');
                     if (nameEl) {
-                        // If resolvedTitle is empty, fall back to product record fields
                         let nameToShow = resolvedTitle || (prod && (prod.title || prod.name)) || tp.product_title || '';
                         if (!nameToShow && prod && prod.brand && prod.sku) {
-                            // last-resort fallback combine brand + sku
                             nameToShow = `${prod.brand} ${prod.sku}`;
                         }
                         if (!nameToShow) {
-                            // Final fallback: a friendly placeholder
                             nameToShow = 'Product';
                             warn('Top Pick missing title', tp);
                         }
                         nameEl.textContent = nameToShow;
-                        // Also add a title attribute for truncated names
                         nameEl.setAttribute('title', nameToShow);
                     }
                 } catch (e) {
                     warn('failed to set top pick name', e);
                 }
 
-                // Set the brand
                 try {
                     const brandEl = card.querySelector('.dynamic-top-pick-brand');
                     if (brandEl) brandEl.textContent = resolvedBrand || '';
                 } catch (e) { /* ignore */ }
 
-                // Attach actions
                 try {
                     const productForCart = {
                         id: prod ? (prod.id || prod._id || prod.product_id) : (tp.product_id || resolvedTitle || 'product'),
@@ -387,6 +512,13 @@
                 }
             } // end for each pick
 
+            // initialize slider after all cards appended
+            try {
+                setupTopPicksSlider(wrapper, track);
+            } catch (e) {
+                warn('setupTopPicksSlider failed', e);
+            }
+
             log('Top Picks rendered', picks.length);
         } catch (e) {
             error('loadDynamicTopPicksByLifestyle error', e);
@@ -408,12 +540,55 @@
             currentPage = 1;
             displayBrands(currentBrands, currentPage);
             setupPagination(currentBrands);
+            populateBrandFilter(ALL_BRANDS);
+            updateStatusMessage('');
             log('brands loaded', ALL_BRANDS.length);
         } catch (e) {
             warn('loadBrands error', e);
-            const brandList = document.getElementById('brandList');
-            if (brandList) brandList.innerHTML = "<li style='color:#888'>Failed to load brands. Try again later.</li>";
+            const brandList = document.getElementById('brandList') || document.getElementById('brandGrid');
+            if (brandList) brandList.innerHTML = "<div style='color:#888'>Failed to load brands. Try again later.</div>";
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // Populate Brand select control with options from a filtered list
+    // -----------------------------------------------------------------------
+    function populateBrandFilter(brands) {
+        const bf = document.getElementById('brandFilter');
+        if (!bf) return;
+        // preserve current selection if possible
+        const previous = bf.value || '';
+        bf.innerHTML = '';
+        const allOpt = document.createElement('option');
+        allOpt.value = '';
+        allOpt.textContent = 'All Brands';
+        bf.appendChild(allOpt);
+
+        // unique brand names in order
+        const seen = new Set();
+        (brands || []).forEach(b => {
+            const name = (b && b.name) ? String(b.name).trim() : '';
+            if (!name) return;
+            const key = name.toLowerCase();
+            if (seen.has(key)) return;
+            seen.add(key);
+            const opt = document.createElement('option');
+            opt.value = (name || '').replace(/ /g, '_');
+            opt.textContent = name;
+            bf.appendChild(opt);
+        });
+
+        // restore previous if still present
+        try {
+            if (previous) bf.value = previous;
+        } catch (e) { /* ignore */ }
+    }
+
+    function updateStatusMessage(gender) {
+        const status = document.getElementById('brandStatus');
+        if (!status) return;
+        const ctx = gender ? (gender.charAt(0).toUpperCase() + gender.slice(1)) : 'All';
+        status.textContent = `${ctx} Products. Select a brand or use the filter above.`;
     }
 
     // -----------------------------------------------------------------------
@@ -423,41 +598,103 @@
         const genderFilter = document.getElementById('genderFilter');
         const brandFilter = document.getElementById('brandFilter');
         const brandStatus = document.getElementById('brandStatus');
+        const searchInput = document.getElementById('searchBrand');
+
+        function applyAllFilters() {
+            const selectedGender = genderFilter ? (genderFilter.value || '') : '';
+            const selectedBrand = brandFilter ? (brandFilter.value || '') : '';
+            const search = currentSearch || '';
+
+            // filter ALL_BRANDS -> currentBrands
+            currentBrands = ALL_BRANDS.slice().filter(b => {
+                if (!b) return false;
+                // gender check
+                if (selectedGender) {
+                    const g = (b.gender || b.sex || b.genders || '').toString().toLowerCase();
+                    const tags = (b.tags || []).join ? (b.tags || []).join(',').toLowerCase() : (b.tags || '').toString().toLowerCase();
+                    if (!(g.indexOf(selectedGender) !== -1 || tags.indexOf(selectedGender) !== -1)) return false;
+                }
+                // brand check
+                if (selectedBrand) {
+                    if (((b.name || '').replace(/ /g, '_').toLowerCase()) !== selectedBrand.toLowerCase()) return false;
+                }
+                // search check
+                if (search) {
+                    const q = search.toLowerCase().trim();
+                    const n = (b.name || '').toString().toLowerCase();
+                    const d = (b.description || '').toString().toLowerCase();
+                    if (!(n.indexOf(q) !== -1 || d.indexOf(q) !== -1)) return false;
+                }
+                return true;
+            });
+
+            currentPage = 1;
+            displayBrands(currentBrands, currentPage);
+            setupPagination(currentBrands);
+            // populate brandFilter based on gender filter (so brand list shows only matching brands)
+            if (genderFilter) {
+                const filteredForBrandOpts = ALL_BRANDS.slice().filter(b => {
+                    if (!selectedGender) return true;
+                    const g = (b.gender || b.sex || b.genders || '').toString().toLowerCase();
+                    const tags = (b.tags || []).join ? (b.tags || []).join(',').toLowerCase() : (b.tags || '').toString().toLowerCase();
+                    return (g.indexOf(selectedGender) !== -1) || (tags.indexOf(selectedGender) !== -1);
+                });
+                populateBrandFilter(filteredForBrandOpts);
+            } else {
+                populateBrandFilter(ALL_BRANDS);
+            }
+            updateStatusMessage(selectedGender);
+            // if auto-slide running restart to pick up new page count
+            if (autoSlideInterval !== null) {
+                stopAutoPagination();
+                startAutoPagination();
+            }
+        }
 
         if (genderFilter) {
             genderFilter.addEventListener('change', () => {
-                const selectedGender = genderFilter.value;
-                const selectedText = genderFilter.options[genderFilter.selectedIndex] ? genderFilter.options[genderFilter.selectedIndex].text.trim() : selectedGender;
-                if (brandStatus) brandStatus.textContent = `${selectedText} Products. Select a brand or use the filter above.`;
+                // reset brand select when gender changes
                 if (brandFilter) {
-                    brandFilter.disabled = false;
-                    brandFilter.innerHTML = '<option value="" disabled selected>Select a Brand</option>';
-                    (ALL_BRANDS || []).forEach(brandObj => {
-                        const opt = document.createElement('option');
-                        opt.value = (brandObj.name || '').replace(/ /g, '_');
-                        opt.textContent = brandObj.name || '';
-                        brandFilter.appendChild(opt);
-                    });
+                    brandFilter.value = '';
                 }
-                currentBrands = ALL_BRANDS.slice();
-                currentPage = 1;
-                displayBrands(currentBrands, currentPage);
-                setupPagination(currentBrands);
-                if (autoSlideInterval !== null) {
-                    stopAutoPagination();
-                    startAutoPagination();
-                }
+                applyAllFilters();
             });
         }
 
         if (brandFilter) {
             brandFilter.addEventListener('change', () => {
-                const selected = brandFilter.value;
-                if (!selected) return;
-                currentBrands = (ALL_BRANDS || []).filter(b => (b.name || '').replace(/ /g, '_') === selected);
+                applyAllFilters();
+            });
+        }
+
+        if (searchInput) {
+            let debounceT = null;
+            searchInput.addEventListener('input', function () {
+                if (debounceT) clearTimeout(debounceT);
+                debounceT = setTimeout(() => {
+                    currentSearch = (searchInput.value || '').trim();
+                    applyAllFilters();
+                }, 160);
+            });
+        }
+
+        // Reset button
+        const resetBtn = document.getElementById('showAllBtn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', function () {
+                if (genderFilter) genderFilter.value = '';
+                if (brandFilter) brandFilter.value = '';
+                if (searchInput) { searchInput.value = ''; currentSearch = ''; }
+                currentBrands = ALL_BRANDS.slice();
                 currentPage = 1;
                 displayBrands(currentBrands, currentPage);
                 setupPagination(currentBrands);
+                populateBrandFilter(ALL_BRANDS);
+                updateStatusMessage('');
+                if (autoSlideInterval !== null) {
+                    stopAutoPagination();
+                    startAutoPagination();
+                }
             });
         }
     }
@@ -468,9 +705,9 @@
     function init() {
         log('init start');
 
-        // Skip if not on men/women page
-        if (!IS_MEN_OR_WOMEN_PAGE) {
-            log('men.js: not a men/women page; skipping initialization to avoid injecting Top Picks on other pages.');
+        // Skip if not on men/women/brands page
+        if (!IS_BRANDS_MEN_WOMEN_PAGE) {
+            log('brands.js: not a men/women/brands page; skipping initialization to avoid injecting Top Picks on other pages.');
             return;
         }
 
@@ -488,7 +725,7 @@
 
         // Small reveal and auto-start auto pagination if many brands
         setTimeout(() => {
-            const bl = document.getElementById('brandListContainer');
+            const bl = document.getElementById('brandListContainer') || document.getElementById('brandGrid');
             if (bl) bl.classList.add('slide-in-reveal');
             setTimeout(() => {
                 if (currentBrands.length > BRANDSPERPAGE) startAutoPagination();
@@ -510,24 +747,34 @@
     // Expose debug API
     // -----------------------------------------------------------------------
     if (typeof window !== 'undefined') {
-        window.menPage = window.menPage || {};
-        window.menPage.startAutoPagination = startAutoPagination;
-        window.menPage.stopAutoPagination = stopAutoPagination;
-        window.menPage.loadDynamicTopPicksByLifestyle = loadDynamicTopPicksByLifestyle;
-        window.menPage.fetchDiscountPercent = fetchDiscountPercent;
-        window.menPage.reloadBrands = async function () { await loadBrands(); };
-        window.menPage.debugDump = function () {
+        window.brandsPage = window.brandsPage || {};
+        window.brandsPage.startAutoPagination = startAutoPagination;
+        window.brandsPage.stopAutoPagination = stopAutoPagination;
+        window.brandsPage.loadDynamicTopPicksByLifestyle = loadDynamicTopPicksByLifestyle;
+        window.brandsPage.fetchDiscountPercent = fetchDiscountPercent;
+        window.brandsPage.reloadBrands = async function () { await loadBrands(); };
+        window.brandsPage.debugDump = function () {
             try {
                 return {
                     pathname: _PATHNAME,
-                    isMenOrWomen: IS_MEN_OR_WOMEN_PAGE,
+                    isBrandsMenWomen: IS_BRANDS_MEN_WOMEN_PAGE,
                     brandsCount: ALL_BRANDS.length,
                     currentBrandsCount: currentBrands.length,
                     currentPage,
-                    autoSlideRunning: autoSlideInterval !== null
+                    autoSlideRunning: autoSlideInterval !== null,
+                    topPicks: {
+                        pages: topPicksPages,
+                        currentPage: topPicksCurrentPage,
+                        autoRunning: topPicksInterval !== null
+                    }
                 };
             } catch (e) { return { error: e && e.message }; }
         };
+
+        // expose control helpers for top picks slider
+        window.brandsPage.startTopPicksAutoSlide = startTopPicksAutoSlide;
+        window.brandsPage.stopTopPicksAutoSlide = stopTopPicksAutoSlide;
+        window.brandsPage.nextTopPicksPage = nextTopPicksPage;
     }
 
 })();

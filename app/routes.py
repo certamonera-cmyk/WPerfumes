@@ -10,7 +10,6 @@ import re
 bp = Blueprint("main", __name__)
 
 
-# Helper: normalize image paths to browser-ready URLs
 def to_static_url(path):
     """
     Convert a stored image path like 'images/creed/aventus.jpg'
@@ -159,6 +158,36 @@ def _render_story_page_or_fallback(story, fallback_title, fallback_html):
 @bp.route('/admin')
 def admin_dashboard():
     return render_template('admin.html')
+
+
+@bp.route('/brands')
+def brands():
+    """
+    Render the brands listing page. Pass the server-side brands data to the template so:
+      - server-side rendered fallback list (Jinja for-loop) works
+      - client-side JS (window.BRANDS) can use the data without an API fetch
+    The Brand model stores logo path via Brand.logo_url property (e.g. 'images/creed/aventus.jpg')
+    which the templates use with url_for('static', filename=...).
+    """
+    try:
+        brand_objs = Brand.query.order_by(Brand.name).all()
+        # pass a list of lightweight dicts (logo path kept as stored path so template's url_for works)
+        brands_list = []
+        for b in brand_objs:
+            brands_list.append({
+                "name": b.name,
+                "logo_url": getattr(b, "logo_url", "") or "",
+                "description": b.description or "",
+                # include gender if model later extended; safe default ''
+                "gender": getattr(b, "gender", "") if hasattr(b, "gender") else ""
+            })
+    except Exception:
+        # In case DB is unavailable, render page with empty list to avoid template crash
+        current_app.logger.exception(
+            "Failed to load brands for /brands; rendering empty list")
+        brands_list = []
+
+    return render_template('brands.html', brands=brands_list)
 
 
 @bp.route('/brand')
@@ -913,7 +942,9 @@ def index():
 
 @bp.route('/men')
 def men():
-    return render_template('men.html')
+    # men route previously returned men.html; men.html was repurposed/renamed into brands.html.
+    # Keep /men working for existing links by rendering the new brands listing page.
+    return render_template('brands.html')
 
 
 @bp.route('/women')
@@ -938,11 +969,14 @@ def signup():
 
 @bp.route('/brand/<brand>')
 def brand_page(brand):
-    return render_template('brand_detail.html')
+    # Serve the single-brand listing page. The brand page template (brand.html) is query-param driven
+    # and the frontend also supports /brand?brand=Name — here we render brand.html for the path form.
+    return render_template('brand.html')
 
 
 @bp.route('/brand/<brand>/product/<product>')
 def brand_product_page(brand, product):
+    # product detail (serves brand_detail.html which reads query params or path segments)
     return render_template('brand_detail.html')
 
 

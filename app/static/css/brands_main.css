@@ -20,6 +20,14 @@
     --accent: #2d8f7c;
 }
 
+/* predictable sizing */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* Base page styles */
 body {
     font-family: 'Georgia', serif;
     background-color: var(--white-bg);
@@ -27,7 +35,7 @@ body {
     margin: 0;
 }
 
-/* General navbar / header styles */
+/* Navbar */
 .navbar {
     background-color: var(--light-brown);
     padding: 6px 10px;
@@ -36,6 +44,11 @@ body {
     justify-content: space-between;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     border-bottom: 1px solid var(--light-silver);
+}
+
+.navbar-left {
+    display: flex;
+    align-items: center;
 }
 
 .brand-logo {
@@ -47,15 +60,11 @@ body {
     margin-right: 20px;
 }
 
-/* NAV TABS: allow extra tab(s) and wrap gracefully */
 .nav-tabs {
     list-style: none;
     padding: 0;
     margin: 0;
     display: flex;
-    flex-wrap: wrap;
-    /* ensure nav items wrap if space is constrained */
-    gap: 6px;
 }
 
 .nav-tabs li a {
@@ -65,8 +74,6 @@ body {
     display: block;
     border-radius: 4px;
     transition: background-color 0.3s, color 0.3s;
-    white-space: nowrap;
-    /* prevent label lines from wrapping */
 }
 
 .nav-tabs li a:hover {
@@ -91,59 +98,12 @@ body {
     color: var(--dark-text);
 }
 
-.announcement-container {
-    max-width: 1200px;
-    margin: 0 auto 8px auto;
-    width: 100%;
-    padding: 0;
-}
-
 .navbar-right {
     display: flex;
     align-items: center;
 }
 
-.navbar-right a {
-    text-decoration: none;
-    color: var(--dark-text);
-    padding: 6px 10px;
-    margin-left: 10px;
-    border: 1px solid var(--dark-text);
-    border-radius: 4px;
-    transition: background-color 0.3s, color 0.3s;
-    font-size: 14px;
-}
-
-.navbar-right .login-btn {
-    background-color: var(--dark-text);
-    color: var(--white-bg);
-    border-color: var(--dark-text);
-}
-
-.navbar-right .login-btn:hover,
-.navbar-right .cart-btn:hover {
-    background-color: var(--light-green);
-    color: var(--dark-accent);
-    border-color: var(--light-green);
-}
-
-section,
-main.content-container {
-    margin-bottom: var(--section-gap);
-}
-
-.footer {
-    margin-top: var(--section-gap);
-}
-
-.top-picks-section {
-    /* remove gray strip background so cards sit on page bg */
-    background-color: transparent;
-    padding: 16px 0;
-    margin-top: 18px;
-    border-top: 2px solid var(--light-brown);
-}
-
+/* General layout containers */
 .content-container {
     max-width: 1200px;
     margin: 24px auto;
@@ -159,6 +119,7 @@ main.content-container {
     margin-bottom: 18px;
 }
 
+/* Page title */
 .page-title {
     font-size: 26px;
     font-weight: bold;
@@ -167,6 +128,7 @@ main.content-container {
     flex-shrink: 0;
 }
 
+/* Filter controls */
 .filter-controls {
     display: flex;
     gap: 8px;
@@ -200,6 +162,7 @@ main.content-container {
     font-style: italic;
 }
 
+/* Discount info */
 .discount-info {
     background: #f1c40f1a;
     color: #b8860b;
@@ -217,10 +180,12 @@ main.content-container {
     max-width: 100%;
 }
 
+/* Brand list/grid container */
 .brand-list-container {
     margin-top: 10px;
 }
 
+/* Slide reveal animation */
 .slide-in-reveal {
     transform: translateY(-10px);
     opacity: 0;
@@ -239,38 +204,256 @@ main.content-container {
     }
 }
 
-.brand-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 14px;
-    transition: opacity 0.3s ease-in-out;
+/* ---------------------------------------------------
+   BRANDS SECTION STYLES (complete, rectangular cards,
+   5-per-row layout, status message)
+   --------------------------------------------------- */
+
+/* Brands page background and spacing */
+main#pageMain {
+    /* gentle warm background behind the brands area matching the mock */
+    background: #f6f1ee;
+    padding: 18px 0;
 }
 
-.brand-list li {
-    width: 100%;
-    height: 120px;
-    padding: 6px;
-    border: 1px solid var(--brand-border);
-    border-radius: 8px;
-    background-color: var(--white-bg);
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
+/* Header row overrides: title left and filters right align on same line */
+.brands-header-row {
     display: flex;
-    flex-direction: column;
-    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+
+.brands-header-left {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.brands-header-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Page controls (gender/select/search) layout tuned to the mock design */
+main#pageMain .page-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 10px 10px 14px 10px;
+    background: transparent;
+    width: 100%;
+}
+
+/* Control groups */
+main#pageMain .controls-left {
+    display: flex;
+    gap: 12px;
     align-items: center;
 }
 
-.brand-list li:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+main#pageMain .controls-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-/* ensure thumbnail wrappers are white (remove gray) */
+/* Inputs and selects: rounded inset look */
+main#pageMain .control-input,
+main#pageMain .control-select {
+    padding: 8px 10px;
+    border: 1px solid #cbbdb6;
+    border-radius: 6px;
+    background: #fff;
+    min-width: 160px;
+    font-family: 'Georgia', serif;
+    color: var(--dark-text);
+}
+
+/* Reset button */
+main#pageMain #showAllBtn {
+    background: #fff;
+    border: 1px solid #cbbdb6;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* Status message shown above the cards (e.g. "Unisex Products...") */
+#brandStatus {
+    margin: 12px 0;
+    padding: 10px 12px;
+    background: #efe5df;
+    border-radius: 4px;
+    border: 1px solid #e5d6d2;
+    color: #5b3f35;
+    font-style: italic;
+}
+
+/* Brand grid: 5 cards per row on wide screens */
+main#pageMain .brand-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 18px;
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: 14px 8px;
+    overflow: hidden;
+    width: 100%;
+}
+
+/* Link wrapper sized so 5 cards fit within the page width (subtract gap * 4 = 72px) */
+main#pageMain .brand-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    flex: 0 0 calc((100% - 72px) / 5);
+    max-width: calc((100% - 72px) / 5);
+}
+
+/* Card: rectangular (wider than tall) with consistent sizing */
+main#pageMain .brand-card {
+    height: 140px;
+    /* rectangular look: width > height */
+    padding: 12px;
+    box-shadow: none;
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #e6ddd9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: transform .15s ease, box-shadow .15s ease, border-color .12s;
+    text-align: center;
+}
+
+/* Hover/selected states */
+main#pageMain .brand-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.06);
+}
+
+main#pageMain .brand-card.selected {
+    border-color: #6b4438;
+    box-shadow: 0 8px 18px rgba(107, 68, 56, 0.12);
+    background: #fffaf8;
+}
+
+/* Logo: centered, contained */
+main#pageMain .brand-card img {
+    width: auto;
+    height: 64px;
+    object-fit: contain;
+    display: block;
+    background: #ffffff;
+    margin-bottom: 6px;
+}
+
+/* Brand name */
+main#pageMain .brand-card h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--dark-text);
+    text-align: center;
+    line-height: 1;
+}
+
+/* Hide descriptions for compact cards */
+main#pageMain .brand-card p {
+    display: none;
+}
+
+/* Pagination controls under grid */
+main#pageMain .pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 14px;
+    padding: 12px 4px;
+    gap: 8px;
+}
+
+/* Page number buttons */
+main#pageMain .pagination-controls button {
+    background-color: #fff;
+    color: var(--dark-text);
+    border: 1px solid #cbbdb6;
+    padding: 8px 10px;
+    margin: 0 3px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* active page */
+main#pageMain .pagination-controls button.active {
+    background-color: #3e2723;
+    color: #fff;
+    border-color: #3e2723;
+    pointer-events: none;
+}
+
+/* small auto-slide control (green like in mock) */
+main#pageMain .pagination-controls .auto-slide {
+    background: #d9f0df;
+    border: 1px solid #bfe1c6;
+    color: #234;
+    padding: 8px 10px;
+    border-radius: 6px;
+}
+
+/* Responsive tweaks: stack / scroll for smaller screens */
+@media (max-width: 1100px) {
+    main#pageMain .brand-link {
+        flex: 0 0 calc((100% - 56px) / 5);
+        max-width: calc((100% - 56px) / 5);
+    }
+}
+
+@media (max-width: 900px) {
+    main#pageMain .brand-grid {
+        overflow-x: auto;
+        padding-bottom: 12px;
+    }
+
+    main#pageMain .brand-link {
+        flex: 0 0 200px;
+        max-width: 200px;
+    }
+}
+
+@media (max-width: 520px) {
+    main#pageMain .brand-grid {
+        gap: 12px;
+    }
+
+    main#pageMain .brand-link {
+        flex: 0 0 45vw;
+        max-width: 45vw;
+    }
+
+    main#pageMain .brand-card {
+        height: auto;
+        padding: 12px;
+    }
+
+    main#pageMain .brand-card img {
+        height: 48px;
+    }
+}
+
+/* ---------------------------------------------------
+   Top Picks, slider, cards and remaining styles
+   (retained from original file)
+   --------------------------------------------------- */
+
 .product-image-container {
     height: 85px;
     display: flex;
@@ -409,6 +592,7 @@ main.content-container {
     background-color: #ffffff;
 }
 
+/* Slider wrappers (kept) */
 slider-container {
     max-width: 1200px;
     margin: 0 auto;
@@ -440,252 +624,30 @@ slider-wrapper:focus .slider-track {
     animation-play-state: paused;
 }
 
-.slider-card-container {
-    display: flex;
-    min-width: 100%;
-}
+/* ---------------------------------------------------
+   NEW: Top Picks rendered horizontally in a scrollable row
+   Show exactly 5 items at once on wide screens
+   --------------------------------------------------- */
 
-.perfume-card {
-    flex: 0 0 25%;
-    width: calc((100% / var(--cards-visible)) - var(--card-gap));
-    min-width: 200px;
-    max-width: 230px;
-    scroll-snap-align: start;
-    box-sizing: border-box;
-    padding: 6px;
-    margin-right: var(--card-gap);
-    text-align: center;
-    border: 1px solid var(--light-silver);
-    border-radius: 6px;
-    background-color: var(--white-bg);
-    transition: transform 0.3s;
-}
-
-.slider-track .slider-card-container:last-child .perfume-card:last-child {
-    margin-right: 0;
-}
-
-.perfume-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-}
-
-.card-group-label {
-    font-size: 10px;
-    color: var(--footer-link-color);
-    margin-bottom: 2px;
-    text-transform: uppercase;
-}
-
-.card-title {
-    font-weight: bold;
-    font-size: 13px;
-    color: var(--dark-accent);
-}
-
-@keyframes slide-scroll {
-    0% {
-        transform: translateX(0);
-    }
-
-    100% {
-        transform: translateX(-50%);
-    }
-}
-
-.slider-nav {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(255, 255, 255, 0.6);
-    border: 1px solid var(--light-silver);
-    color: var(--arrow-color);
-    padding: 8px;
-    cursor: pointer;
-    z-index: 10;
-    line-height: 1;
-    font-size: 18px;
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-    transition: background-color 0.2s;
-    pointer-events: none;
-    opacity: 0.5;
-}
-
-.footer {
-    background-color: var(--light-brown);
-    color: var(--dark-text);
-    padding: 20px 10px 10px;
-    border-top: 1px solid var(--light-silver);
-    margin-top: var(--section-gap);
-}
-
-.footer-container {
-    display: flex;
-    justify-content: space-between;
-    max-width: 1200px;
-    margin: 0 auto;
-    text-align: left;
-    flex-wrap: wrap;
-}
-
-.footer-section {
-    flex: 1;
-    min-width: 180px;
-    margin-bottom: 10px;
-}
-
-.footer-section h4 {
-    font-size: 15px;
-    margin-bottom: 10px;
-    color: var(--dark-accent);
-}
-
-.social-icons a {
-    font-size: 20px;
-    color: var(--dark-text);
-    text-decoration: none;
-    margin-right: 10px;
-    transition: color 0.3s;
-}
-
-.payment-methods {
-    margin-top: 12px;
-    font-size: 20px;
-}
-
-.payment-methods span {
-    margin-right: 7px;
-    color: var(--footer-link-color);
-}
-
-.footer-section p,
-.footer-section a {
-    color: var(--footer-link-color);
-    text-decoration: none;
-    display: block;
-    margin-bottom: 6px;
-    font-size: 13px;
-    transition: color 0.3s;
-}
-
-.footer-bottom {
-    text-align: center;
-    margin-top: 18px;
-    padding-top: 8px;
-    border-top: 1px solid rgba(62, 39, 35, 0.1);
-    font-size: 11px;
-    color: var(--footer-link-color);
-}
-
-.cart-btn {
-    color: var(--dark-text);
-    padding: 6px 10px;
-    margin-left: 10px;
-    border: 1px solid var(--dark-text);
-    border-radius: 4px;
-    transition: background-color 0.3s, color 0.3s;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    text-decoration: none;
-}
-
-cart-count-badge {
-    background-color: var(--sale-red);
-    color: var(--primary-white);
-    border-radius: 50%;
-    padding: 2px 6px;
-    font-size: 10px;
-    position: relative;
-    top: -8px;
-    right: 8px;
-}
-
-.login-menu-container {
-    position: relative;
-}
-
-login-btn {
-    background-color: var(--dark-text);
-    color: var(--primary-white);
-    border-color: var(--dark-text);
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    text-decoration: none;
-    padding: 6px 10px;
-    margin-left: 10px;
-    border: 1px solid var(--dark-text);
-    border-radius: 4px;
-    transition: background-color 0.3s, color 0.3s;
-    font-size: 14px;
-}
-
-login-btn svg {
-    fill: var(--primary-white);
-    stroke: var(--primary-white);
-}
-
-.login-menu-container:hover .login-btn {
-    background-color: #5d4037;
-    border-color: #5d4037;
-}
-
-.login-menu-container:hover .login-btn svg {
-    fill: #c8e6c9;
-    stroke: #c8e6c9;
-}
-
-.login-submenu {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    z-index: 1000;
-    background-color: var(--white-bg);
-    border: 1px solid var(--light-silver);
-    border-radius: 4px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    padding: 5px 0;
-    margin-top: 5px;
-    min-width: 120px;
-}
-
-.login-menu-container:hover .login-submenu {
-    display: block;
-}
-
-.login-submenu a {
-    display: block;
-    padding: 8px 15px;
-    color: var(--dark-text);
-    text-decoration: none;
-    font-size: 14px;
-    transition: background-color 0.2s;
-    border: none;
-    margin: 0;
-}
-
-.login-submenu a:hover {
-    background-color: var(--light-green);
-}
-
-/* Updated styles for Dynamic Top Picks by Lifestyle cards */
 #dynamicTopPicksByLifestyleContainer {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    display: flex;
+    flex-wrap: nowrap;
     gap: 18px;
     align-items: stretch;
+    overflow-x: auto;
+    padding: 12px 6px 18px 6px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scroll-snap-type: x mandatory;
 }
 
+/* Ensure cards sit side-by-side and don't wrap; compute widths so 5 cards are visible.
+   We subtract the total horizontal gap between cards (4 gaps of 18px = 72px) and divide by 5. */
 .dynamic-top-pick-card {
+    flex: 0 0 calc((100% - 72px) / 5);
+    min-width: calc((100% - 72px) / 5);
+    max-width: calc((100% - 72px) / 5);
+    /* keep original visuals */
     height: 100%;
     min-height: 340px;
     display: flex;
@@ -698,6 +660,7 @@ login-btn svg {
     padding: 0;
     overflow: hidden;
     border: 1px solid var(--light-silver);
+    scroll-snap-align: start;
 }
 
 /* Make the full image visible and replace gray with white behind image */
@@ -766,28 +729,6 @@ login-btn svg {
     text-overflow: ellipsis;
 }
 
-/* Meta row (Top Seller / reviews) arranged compactly and vertically tight */
-.dynamic-top-pick-meta {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    font-size: 0.9em;
-    color: #444;
-    margin-top: 2px;
-}
-
-/* Slightly smaller spacing for sales/reviews line */
-.dynamic-top-pick-sales {
-    font-size: 0.88em;
-    color: #c88c00;
-    margin: 0;
-}
-
-.dynamic-top-pick-reviews {
-    font-size: 0.88em;
-    margin: 0;
-}
-
 /* Price moved closer to meta block */
 .dynamic-top-pick-price {
     margin-top: 4px;
@@ -839,14 +780,39 @@ login-btn svg {
     font-weight: 600;
 }
 
-/* Adjustments for small screens — keep the image fully visible */
+/* Responsive adjustments:
+   - <=900px: show 3 cards at once (subtract 2 gaps of 12px => 24px)
+   - <=520px: show 2 cards (handled by earlier mobile style: 85% width fallback) */
+@media (max-width: 900px) {
+    #dynamicTopPicksByLifestyleContainer {
+        gap: 12px;
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    /* 3 visible: subtract 2 gaps of 12px = 24px */
+    .dynamic-top-pick-card {
+        flex: 0 0 calc((100% - 24px) / 3);
+        min-width: calc((100% - 24px) / 3);
+        max-width: calc((100% - 24px) / 3);
+    }
+}
+
 @media (max-width: 520px) {
-    .dynamic-top-pick-card .image-wrapper {
-        height: 200px;
+    #dynamicTopPicksByLifestyleContainer {
+        padding-bottom: 10px;
+        gap: 12px;
     }
 
     .dynamic-top-pick-card {
+        flex: 0 0 85%;
+        min-width: 85%;
+        max-width: 85%;
         min-height: 320px;
+    }
+
+    .dynamic-top-pick-card .image-wrapper {
+        height: 200px;
     }
 
     .dynamic-top-pick-name {
@@ -863,4 +829,43 @@ login-btn svg {
         height: 46px;
         padding: 8px 10px;
     }
+}
+
+/* Modal styles retained below (unchanged) */
+.cart-modal-bg {
+    display: none;
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    width: 100vw;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 2000;
+}
+
+.cart-modal-content {
+    background: #fff;
+    width: 720px;
+    max-width: 96%;
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.25);
+    position: relative;
+}
+
+.cart-modal-close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    position: absolute;
+    right: 12px;
+    top: 10px;
+    cursor: pointer;
+}
+
+.small-muted {
+    font-size: 0.95em;
+    color: #666;
 }
