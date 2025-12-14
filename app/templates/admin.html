@@ -249,6 +249,7 @@
                         <tr>
                             <th style="text-align:left; width:220px">Competitor Brand</th>
                             <th style="text-align:left; width:150px">Product ID (required)</th>
+                            <th style="text-align:left; width:220px">Product Name</th>
                             <th style="text-align:left; width:140px">Our Price (auto)</th>
                             <th style="text-align:left; width:160px">Competitor Price</th>
                             <th style="width:70px"></th>
@@ -454,94 +455,162 @@
                 return n.toFixed(2);
             }
 
-            // Fetch product by id and set our-price input
-            async function fetchAndSetOurPriceForRow(tr) {
+            // Fetch product by id and set our-price & product-name inputs
+            async function fetchAndSetRowFields(tr) {
                 if (!tr || !tr.querySelector) return;
                 const prodInput = tr.querySelector('.pc-product-id');
                 const ourInput = tr.querySelector('.pc-our-price');
+                const nameInput = tr.querySelector('.pc-product-name');
 
-                if (!prodInput || !ourInput) return;
+                if (!prodInput) return;
 
-                // Ensure ourInput is readonly and visually labelled as auto
-                try {
-                    ourInput.readOnly = true;
-                    ourInput.placeholder = ourInput.placeholder || 'auto';
-                    ourInput.title = 'Auto-filled from product database (read-only)';
-                    ourInput.classList.add('pc-our-price-auto');
-                } catch (e) {
-                    // ignore
+                // ensure ourInput and nameInput exist; if ourInput missing, try to locate or create
+                if (!ourInput) {
+                    // fallback: create our-price cell at expected position (after product-name)
+                    const td = document.createElement('td');
+                    const inp = document.createElement('input');
+                    inp.type = 'text';
+                    inp.className = 'pc-our-price';
+                    inp.readOnly = true;
+                    inp.placeholder = 'auto';
+                    td.appendChild(inp);
+                    // try to insert before competitor price cell if exists
+                    const compPriceTd = tr.querySelector('.pc-competitor-price') ? tr.querySelector('.pc-competitor-price').closest('td') : null;
+                    if (compPriceTd) compPriceTd.parentNode.insertBefore(td, compPriceTd);
+                    else tr.appendChild(td);
+                }
+                if (!nameInput) {
+                    // create product-name td/input if missing
+                    const tdn = document.createElement('td');
+                    const inpName = document.createElement('input');
+                    inpName.type = 'text';
+                    inpName.className = 'pc-product-name';
+                    inpName.readOnly = true;
+                    inpName.placeholder = 'auto';
+                    tdn.appendChild(inpName);
+                    // insert after product-id cell
+                    const pidTd = prodInput.closest('td');
+                    if (pidTd && pidTd.parentNode) {
+                        pidTd.parentNode.insertBefore(tdn, pidTd.nextSibling);
+                    } else {
+                        tr.insertBefore(tdn, tr.firstChild ? tr.firstChild.nextSibling : null);
+                    }
                 }
 
+                // re-query now that we've possibly created elements
+                const ourEl = tr.querySelector('.pc-our-price');
+                const nameEl = tr.querySelector('.pc-product-name');
+
+                // If no product id set => clear the fields
                 const pid = (prodInput.value || '').trim();
                 if (!pid) {
-                    ourInput.value = '';
+                    if (ourEl) ourEl.value = '';
+                    if (nameEl) nameEl.value = '';
                     return;
                 }
 
                 try {
-                    const res = await fetch(`/api/product_by_id?product_id=${encodeURIComponent(pid)}`, { credentials: 'include' });
+                    const res = await fetch(`/api/product_by_id?product_id=${encodeURIComponent(pid)}`, { credentials: 'same-origin' });
                     if (!res.ok) {
-                        // If product not found, clear value but leave field read-only
-                        ourInput.value = '';
+                        // product not found
+                        if (ourEl) ourEl.value = '';
+                        if (nameEl) nameEl.value = '';
                         return;
                     }
                     const js = await res.json();
                     let price = null;
-                    if (js && (typeof js.price !== 'undefined')) {
-                        price = js.price;
-                    } else if (js && js.data && typeof js.data.price !== 'undefined') {
-                        price = js.data.price;
-                    }
-                    ourInput.value = formatPriceValue(price);
+                    if (js && (typeof js.price !== 'undefined')) price = js.price;
+                    else if (js && js.data && typeof js.data.price !== 'undefined') price = js.data.price;
+
+                    // product name fields: prefer title then name
+                    let pname = '';
+                    if (js && (js.title || js.name)) pname = js.title || js.name;
+                    else if (js && js.brand && js.title) pname = `${js.brand} — ${js.title}`;
+
+                    if (ourEl) ourEl.value = formatPriceValue(price);
+                    if (nameEl) nameEl.value = pname;
                 } catch (err) {
-                    console.warn('Failed to fetch product price for', pid, err);
-                    ourInput.value = '';
+                    console.warn('Failed to fetch product info for', pid, err);
+                    if (ourEl) ourEl.value = '';
+                    if (nameEl) nameEl.value = '';
                 }
             }
 
-            // Wire up event handlers for a single table row
+            // Wire up event handlers for a single table row and ensure "Product Name" cell exists
             function wireRow(tr) {
                 if (!tr || !tr.querySelector) return;
                 const prodInput = tr.querySelector('.pc-product-id');
                 const ourInput = tr.querySelector('.pc-our-price');
-                if (!prodInput || !ourInput) return;
+                // Ensure product-name input exists; if not, create immediately after product-id td
+                let nameInput = tr.querySelector('.pc-product-name');
 
-                // If already wired skip (avoid duplicate listeners)
+                if (!prodInput) return;
+
+                // create product-name cell if missing
+                if (!nameInput) {
+                    const pidTd = prodInput.closest('td');
+                    const td = document.createElement('td');
+                    const inp = document.createElement('input');
+                    inp.type = 'text';
+                    inp.className = 'pc-product-name';
+                    inp.readOnly = true;
+                    inp.placeholder = 'auto';
+                    td.appendChild(inp);
+                    if (pidTd && pidTd.parentNode) {
+                        pidTd.parentNode.insertBefore(td, pidTd.nextSibling);
+                    } else {
+                        // fallback append to the row (best-effort)
+                        tr.appendChild(td);
+                    }
+                    nameInput = inp;
+                }
+
+                // mark wired
                 if (tr.dataset._pc_wired === '1') {
-                    // ensure our-price is readonly and attempt initial fetch
-                    fetchAndSetOurPriceForRow(tr).catch(() => { });
+                    // still attempt an initial fetch if pid present
+                    if (prodInput.value && prodInput.value.trim()) {
+                        fetchAndSetRowFields(tr).catch(() => { });
+                    }
                     return;
                 }
                 tr.dataset._pc_wired = '1';
 
+                // make our-price read-only and annotated if exists
+                const ourEl = tr.querySelector('.pc-our-price');
+                if (ourEl) {
+                    ourEl.readOnly = true;
+                    ourEl.placeholder = ourEl.placeholder || 'auto';
+                    ourEl.title = 'Auto-filled from product database (read-only)';
+                    ourEl.classList.add('pc-our-price-auto');
+                }
 
-                try {
-                    ourInput.readOnly = true;
-                    ourInput.placeholder = ourInput.placeholder || 'auto';
-                    ourInput.title = 'Auto-filled from product database (read-only)';
-                    ourInput.classList.add('pc-our-price-auto');
-                } catch (e) { /* ignore */ }
+                // ensure product-name input is read-only and labelled
+                const nameEl = tr.querySelector('.pc-product-name');
+                if (nameEl) {
+                    nameEl.readOnly = true;
+                    nameEl.placeholder = nameEl.placeholder || 'auto';
+                    nameEl.title = 'Auto-filled product name (read-only)';
+                    nameEl.classList.add('pc-product-name-auto');
+                }
 
-
-                const handler = () => { fetchAndSetOurPriceForRow(tr).catch(() => { }); };
+                const handler = () => { fetchAndSetRowFields(tr).catch(() => { }); };
                 prodInput.addEventListener('change', handler);
                 prodInput.addEventListener('blur', handler);
 
-
+                // initial population
                 if (prodInput.value && prodInput.value.trim()) {
-                    fetchAndSetOurPriceForRow(tr).catch(() => { });
+                    fetchAndSetRowFields(tr).catch(() => { });
                 }
             }
-
 
             function init() {
                 const tbody = document.querySelector('#pcCompetitorsTable tbody');
                 if (!tbody) return;
 
-
+                // wire existing rows
                 Array.from(tbody.querySelectorAll('tr')).forEach(wireRow);
 
-
+                // observe DOM changes to auto-wire newly added rows
                 const mo = new MutationObserver((mutations) => {
                     for (const m of mutations) {
                         for (const node of m.addedNodes) {
@@ -556,12 +625,12 @@
                 });
                 mo.observe(tbody, { childList: true, subtree: true });
 
-
+                // If there is an existing loader for price comparison settings, wrap it to ensure wiring after load
                 const originalLoad = window.loadPriceComparisonSettings_v3;
                 if (typeof originalLoad === 'function') {
                     window.loadPriceComparisonSettings_v3 = async function () {
                         const res = await originalLoad();
-                        // small delay to let admin.js render rows
+                        // short delay to allow rows to be inserted
                         setTimeout(() => {
                             Array.from(document.querySelectorAll('#pcCompetitorsTable tbody tr')).forEach(wireRow);
                         }, 80);

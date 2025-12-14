@@ -5,8 +5,105 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Price Comparison — WPerfumes</title>
+
+    <!-- Shared site styles -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/price_comparison.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/announcements.css') }}">
+
+    <!-- Small additional styles for the search dropdown (keeps CSS file focused) -->
+    <style>
+        .pc-page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .pc-page-header .subtitle {
+            color: #6b6b6b;
+            font-size: 0.98rem;
+        }
+
+        .pc-search-container {
+            position: relative;
+            width: 520px;
+            max-width: 100%;
+        }
+
+        #pcProductSearch {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            background: #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+            outline: none;
+            transition: box-shadow .12s ease, border-color .12s ease;
+        }
+
+        #pcProductSearch:focus {
+            border-color: #cfeee5;
+            box-shadow: 0 8px 20px rgba(45, 143, 124, 0.08);
+        }
+
+        #pcSearchResults {
+            position: absolute;
+            z-index: 1200;
+            background: #fff;
+            border: 1px solid #e6e6e6;
+            border-radius: 6px;
+            max-height: 320px;
+            overflow: auto;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            margin-top: 6px;
+        }
+
+        #pcSearchResults .pc-sr-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f6f6f6;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        #pcSearchResults .pc-sr-item .title {
+            font-weight: 700;
+            color: #2b2b2b;
+        }
+
+        #pcSearchResults .pc-sr-item .meta {
+            color: #7a7a7a;
+            font-size: 0.92rem;
+        }
+
+        #pcSearchResults .pc-sr-item[aria-selected="true"],
+        #pcSearchResults .pc-sr-item:hover {
+            background: #f7fbf8;
+        }
+
+        .btn {
+            padding: 9px 12px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            font-weight: 700;
+            background: #fff;
+        }
+
+        .btn-primary {
+            background: #2d8f7c;
+            color: #fff;
+            border-color: rgba(0, 0, 0, 0.04);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+    </style>
 </head>
 
 <body>
@@ -17,40 +114,88 @@
             <a class="brand-logo" href="{{ url_for('main.index') }}">WPerfumes</a>
             <ul class="nav-tabs" role="menubar" aria-label="Site Menu">
                 <li><a href="{{ url_for('main.index') }}">Home</a></li>
-                <li><a href="{{ url_for('main.men') }}">Men</a></li>
+                <li><a href="{{ url_for('main.brands') }}">Fragrances</a></li>
+                <li><a href="/price-comparison">Compare Prices</a></li>
+                <li><a href="{{ url_for('main.history') }}">History</a></li>
+                <li><a href="{{ url_for('main.about') }}">About Us</a></li>
             </ul>
+        </div>
+
+        <div class="navbar-center">
+            <div class="search-container">
+                <input id="siteSearchInput" type="text" placeholder="Search for scents, notes, or brands..."
+                    aria-label="Search">
+            </div>
+        </div>
+
+        <div class="navbar-right">
+            <a id="cartBtn" class="cart-btn" href="{{ url_for('main.cart') }}" aria-label="Open cart">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3e2723" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="9" cy="21" r="1"></circle>
+                    <circle cx="20" cy="21" r="1"></circle>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61l1.38-8.19H6"></path>
+                </svg>
+                <span>Cart</span>
+                <span id="cartCountBadge" class="cart-count-badge" style="display:none;">0</span>
+            </a>
+
+            <div class="login-menu-container">
+                <a href="{{ url_for('main.login_page') }}" class="login-btn">Login</a>
+                <div class="login-submenu">
+                    <a href="{{ url_for('main.signup') }}" class="signup-btn">Sign Up</a>
+                </div>
+            </div>
         </div>
     </nav>
 
     <main class="container price-compare-main" role="main">
-        <h1>Compare prices for our perfumes</h1>
-        <p class="lead">Admin-entered competitor rows drive this comparison. Add competitor rows in Admin → Price
-            Comparison. Each competitor entry must include a Product ID (e.g. PRD001) that uniquely identifies the
-            product in our DB.</p>
+        <div class="pc-page-header">
+            <div>
+                <h1 style="margin:0;">Compare prices for our perfumes</h1>
+                <div class="subtitle">Quickly compare our retail price with competitor prices — search or pick a product
+                    below.</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <a class="btn" href="{{ url_for('main.brands') }}">Browse Fragrances</a>
+            </div>
+        </div>
 
-        <div class="pc-controls">
-            <label for="pcProductSelect">Our product</label>
-            <select id="pcProductSelect" aria-label="Select product">
-                <option value="">Loading products…</option>
-            </select>
+        <!-- Controls: Search + select + Compare -->
+        <div class="pc-controls" aria-label="Product selection and search">
+            <div class="pc-search-container">
+                <label for="pcProductSearch" style="display:block;font-weight:600;margin-bottom:8px;">Search by Product
+                    or Brand Names</label>
+                <input id="pcProductSearch" type="search" placeholder="Type product title, brand or ID (min 2 chars)..."
+                    aria-label="Search by Product or Brand Names" />
+                <div id="pcSearchResults" role="listbox" aria-hidden="true" style="display:none;"></div>
+            </div>
 
-            <button id="pcCompareBtn" class="btn-primary">Compare Prices</button>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <label for="pcProductSelect" style="font-weight:600;margin-right:8px;">Or choose</label>
+                <select id="pcProductSelect" aria-label="Select product" style="min-width:320px;">
+                    <option value="">Loading products…</option>
+                </select>
+
+                <button id="pcCompareBtn" class="btn-primary" title="Run comparison">Compare Prices</button>
+            </div>
         </div>
 
         <div id="pcStatus" class="pc-status" aria-live="polite"></div>
 
         <div id="pcResult" class="pc-result" style="display:none;">
-            <h2 id="pcProductTitle"></h2>
+            <h2 id="pcProductTitle" style="margin-top:0;"></h2>
+
             <div class="our-price-row">
                 <div class="our-price-label">Our price</div>
-                <div id="pcOurPrice" class="our-price-value"></div>
+                <div id="pcOurPrice" class="our-price-value">—</div>
                 <div id="pcBadge" class="pc-badge" style="display:none">Cheapest</div>
             </div>
 
             <table id="pcTable" class="pc-table" role="table" aria-label="Comparison results">
                 <thead>
                     <tr>
-                        <th>Competitor Brand</th>
+                        <th>Competitor</th>
                         <th>Product ID</th>
                         <th>Our Price</th>
                         <th>Competitor Price</th>
@@ -61,10 +206,176 @@
         </div>
     </main>
 
+    <!-- Shared scripts -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/announcements.js') }}"></script>
+
+    <!-- Inline search behaviour (debounced remote search using /api/search) -->
     <script>
-        // optional: server can inject a preset product id
-        window.PC_PRESET_PRODUCT_ID = "{{ product_id or '' }}";
+        (function () {
+            const searchInput = document.getElementById('pcProductSearch');
+            const resultsBox = document.getElementById('pcSearchResults');
+            const selectEl = document.getElementById('pcProductSelect');
+            const statusEl = document.getElementById('pcStatus');
+            let controller = null;
+            let items = [];
+            let activeIndex = -1;
+            const DEBOUNCE_MS = 250;
+            let debounceTimer = null;
+
+            function setStatus(msg, isError) {
+                if (!statusEl) return;
+                statusEl.textContent = msg || '';
+                statusEl.style.color = isError ? '#c00' : '';
+            }
+
+            function clearResults() {
+                items = [];
+                activeIndex = -1;
+                resultsBox.innerHTML = '';
+                resultsBox.style.display = 'none';
+                resultsBox.setAttribute('aria-hidden', 'true');
+            }
+
+            function renderResults(list) {
+                resultsBox.innerHTML = '';
+                if (!Array.isArray(list) || list.length === 0) {
+                    clearResults();
+                    return;
+                }
+                list.slice(0, 10).forEach((p, idx) => {
+                    const div = document.createElement('div');
+                    div.className = 'pc-sr-item';
+                    div.setAttribute('role', 'option');
+                    div.setAttribute('data-id', p.id || '');
+                    div.setAttribute('aria-selected', 'false');
+                    div.innerHTML = `<div class="title">${escapeHtml(p.title || p.name || p.id)}</div>
+                                 <div class="meta">${escapeHtml(p.brand || '')} • ${p.price ? '£' + Number(p.price).toFixed(2) : 'Price N/A'}</div>`;
+                    div.addEventListener('click', () => {
+                        chooseResult(idx);
+                    });
+                    resultsBox.appendChild(div);
+                });
+                items = list.slice(0, 10);
+                resultsBox.style.display = '';
+                resultsBox.setAttribute('aria-hidden', 'false');
+                activeIndex = -1;
+            }
+
+            function escapeHtml(str) {
+                if (!str) return '';
+                return String(str).replace(/[&<>"']/g, function (m) {
+                    return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m];
+                });
+            }
+
+            function highlight(index) {
+                const children = resultsBox.children;
+                for (let i = 0; i < children.length; i++) {
+                    children[i].setAttribute('aria-selected', i === index ? 'true' : 'false');
+                }
+                activeIndex = index;
+            }
+
+            function chooseResult(index) {
+                const p = items[index];
+                if (!p) return;
+                try {
+                    let optExists = false;
+                    for (const opt of selectEl.options) {
+                        if (opt.value === p.id) { opt.selected = true; optExists = true; break; }
+                    }
+                    if (!optExists) {
+                        const opt = document.createElement('option');
+                        opt.value = p.id;
+                        opt.textContent = `${p.title || p.id} — ${p.brand || ''} (${p.id})`;
+                        selectEl.appendChild(opt);
+                        opt.selected = true;
+                    }
+                } catch (e) {
+                    console.warn('set select failed', e);
+                    selectEl.value = p.id;
+                }
+                clearResults();
+                setStatus('');
+                const compareBtn = document.getElementById('pcCompareBtn');
+                if (compareBtn) compareBtn.click();
+            }
+
+            async function doSearch(q) {
+                if (!q || q.trim().length < 2) {
+                    clearResults();
+                    return;
+                }
+                setStatus('Searching…');
+                if (controller) controller.abort();
+                controller = new AbortController();
+                const sig = controller.signal;
+                try {
+                    const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&limit=12`, { signal: sig, credentials: 'same-origin' });
+                    if (!res.ok) {
+                        setStatus('Search failed', true);
+                        clearResults();
+                        return;
+                    }
+                    const js = await res.json();
+                    const list = js.items || js || [];
+                    renderResults(list);
+                    setStatus('');
+                } catch (err) {
+                    if (err && err.name === 'AbortError') return;
+                    console.warn('search error', err);
+                    setStatus('Search error', true);
+                    clearResults();
+                }
+            }
+
+            function onInput(e) {
+                const q = (e.target.value || '').trim();
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => doSearch(q), DEBOUNCE_MS);
+            }
+
+            function onKeyDown(e) {
+                if (resultsBox.style.display === 'none') return;
+                const len = resultsBox.children.length;
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    const next = Math.min(len - 1, activeIndex + 1);
+                    highlight(next);
+                    resultsBox.children[next]?.scrollIntoView({ block: 'nearest' });
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    const prev = Math.max(0, activeIndex - 1);
+                    highlight(prev);
+                    resultsBox.children[prev]?.scrollIntoView({ block: 'nearest' });
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (activeIndex >= 0) chooseResult(activeIndex);
+                    else if (items.length) chooseResult(0);
+                } else if (e.key === 'Escape') {
+                    clearResults();
+                }
+            }
+
+            document.addEventListener('click', function (ev) {
+                if (!resultsBox.contains(ev.target) && ev.target !== searchInput) {
+                    clearResults();
+                }
+            });
+
+            if (searchInput) {
+                searchInput.addEventListener('input', onInput);
+                searchInput.addEventListener('keydown', onKeyDown);
+                searchInput.addEventListener('focus', function (e) {
+                    const q = (e.target.value || '').trim();
+                    if (q.length >= 2) doSearch(q);
+                });
+            }
+        })();
     </script>
+
+    <!-- Main page logic (loads product list and runs comparisons) -->
     <script src="{{ url_for('static', filename='js/price_comparison.js') }}"></script>
 </body>
 
