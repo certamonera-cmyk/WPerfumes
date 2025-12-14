@@ -1,26 +1,3 @@
-#!/usr/bin/env bash
-# push_and_commit.sh
-# Commit staged changes (or stage all) and push to GitHub non-interactively.
-# This version sets the origin to your uaemarati GitHub repo (removes cyrussimba).
-#
-# Usage:
-#   cd /path/to/WPerfumes
-#   ./push_and_commit.sh "Optional commit message"
-#
-# If you cannot authenticate interactively, export a GITHUB_TOKEN (Personal Access Token)
-# in your environment before running to perform a non-interactive push:
-#   export GITHUB_TOKEN="ghp_xxx..."
-#
-# Notes:
-# - The script will:
-#   1) ensure we're in a git repo
-#   2) set origin to https://github.com/uaemarati2032/WPerfumes.git
-#   3) fetch & rebase current branch on remote (keeps history linear)
-#   4) stage all changes, commit with timestamped message if needed
-#   5) push to origin (uses token if provided)
-#
-# - It uses --no-verify on commit to avoid interactive hooks.
-# - If you want to force push in case of non-fast-forward, set FORCE_PUSH=true (risky).
 set -euo pipefail
 
 # ----- CONFIG -----

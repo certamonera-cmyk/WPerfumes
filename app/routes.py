@@ -942,9 +942,9 @@ def index():
 
 @bp.route('/men')
 def men():
-    # men route previously returned men.html; men.html was repurposed/renamed into brands.html.
-    # Keep /men working for existing links by rendering the new brands listing page.
-    return render_template('brands.html')
+    # Redirect /men to the canonical brands listing so the same context (brands list)
+    # is produced by the existing /brands view and templates receive the expected 'brands' variable.
+    return redirect(url_for('main.brands'))
 
 
 @bp.route('/women')
