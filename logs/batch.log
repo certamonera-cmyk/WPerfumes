@@ -1,0 +1,12 @@
+2025-12-17 14:08:34,053 INFO Starting worker for 7 entries with 6 workers
+2025-12-17 14:08:49,709 INFO Retrying non-render https://parfum.ae/products/mixture-of-fleur-narcotique-molecule-02-another-13 attempt=1 err=('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')) sleep=0.8s
+2025-12-17 14:08:50,302 INFO Retrying non-render https://emiratesoud.co.uk/products/resala-arabian-oud attempt=1 err=HTTPSConnectionPool(host='emiratesoud.co.uk', port=443): Max retries exceeded with url: /products/resala-arabian-oud (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1028)'))) sleep=1.3s
+2025-12-17 14:08:55,659 INFO Retrying non-render https://www.vperfumes.com/ae-en/product/burberry-london-edt-for-men-100ml attempt=1 err=HTTP 500 sleep=1.5s
+2025-12-17 14:08:59,509 INFO OK (non-render) https://www.vperfumes.com/ae-en/product/burberry-edp-for-women-100ml -> 129.0 AED
+2025-12-17 14:08:59,918 INFO OK (non-render) https://www.vperfumes.com/ae-en/product/afnan-9pm-edp-for-men-100ml -> 119.0 AED
+2025-12-17 14:09:01,174 INFO OK (non-render) https://www.vperfumes.com/ae-en/product/armaf-club-de-nuit-edp-for-women-105ml -> 145.0 AED
+2025-12-17 14:09:07,353 INFO OK (non-render) https://parfum.ae/products/mixture-of-fleur-narcotique-molecule-02-another-13 -> 55.0 AED
+2025-12-17 14:09:07,573 INFO OK (non-render) https://emiratesoud.co.uk/products/resala-arabian-oud -> 130.0 GBP
+2025-12-17 14:09:11,251 INFO OK (non-render) https://emiratesoud.co.uk/products/obsidian-french-avenue -> 39.99 GBP
+2025-12-17 14:09:17,800 INFO OK (non-render) https://www.vperfumes.com/ae-en/product/burberry-london-edt-for-men-100ml -> 123.0 AED
+2025-12-17 14:09:17,803 INFO All tasks complete. DB: price_history.db

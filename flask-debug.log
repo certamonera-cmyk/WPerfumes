@@ -1,0 +1,413 @@
+[2025-12-15 01:27:18,934] DEBUG in __init__: Setting SQLALCHEMY_ENGINE_OPTIONS.connect_args.sslmode=require
+[2025-12-15 01:27:19,568] DEBUG in __init__: Created endpoint alias: main.admin_dashboard -> admin_dashboard (path: /admin)
+[2025-12-15 01:27:19,568] DEBUG in __init__: Created endpoint alias: main.brands -> brands (path: /brands)
+[2025-12-15 01:27:19,569] DEBUG in __init__: Created endpoint alias: main.brand -> brand (path: /brand)
+[2025-12-15 01:27:19,569] DEBUG in __init__: Created endpoint alias: main.brand_detail -> brand_detail (path: /brand_detail)
+[2025-12-15 01:27:19,569] DEBUG in __init__: Created endpoint alias: main.checkout -> checkout (path: /checkout)
+[2025-12-15 01:27:19,570] DEBUG in __init__: Created endpoint alias: main.cart -> cart (path: /cart)
+[2025-12-15 01:27:19,570] DEBUG in __init__: Created endpoint alias: main.forgot_password -> forgot_password (path: /forgot_password)
+[2025-12-15 01:27:19,570] DEBUG in __init__: Created endpoint alias: main.login -> login (path: /api/auth/login)
+[2025-12-15 01:27:19,571] DEBUG in __init__: Created endpoint alias: main.logout -> logout (path: /api/auth/logout)
+[2025-12-15 01:27:19,571] DEBUG in __init__: Created endpoint alias: main.get_brands -> get_brands (path: /api/brands)
+[2025-12-15 01:27:19,571] DEBUG in __init__: Created endpoint alias: main.add_brand -> add_brand (path: /api/brands)
+[2025-12-15 01:27:19,571] DEBUG in __init__: Created endpoint alias: main.update_brand -> update_brand (path: /api/brands/<name>)
+[2025-12-15 01:27:19,572] DEBUG in __init__: Created endpoint alias: main.delete_brand -> delete_brand (path: /api/brands/<name>)
+[2025-12-15 01:27:19,572] DEBUG in __init__: Created endpoint alias: main.get_products -> get_products (path: /api/products)
+[2025-12-15 01:27:19,573] DEBUG in __init__: Created endpoint alias: main.add_product -> add_product (path: /api/products)
+[2025-12-15 01:27:19,573] DEBUG in __init__: Created endpoint alias: main.update_product -> update_product (path: /api/products/<id>)
+[2025-12-15 01:27:19,573] DEBUG in __init__: Created endpoint alias: main.delete_product -> delete_product (path: /api/products/<id>)
+[2025-12-15 01:27:19,574] DEBUG in __init__: Created endpoint alias: main.update_product_status -> update_product_status (path: /api/products/status/<id>)
+[2025-12-15 01:27:19,574] DEBUG in __init__: Created endpoint alias: main.get_product_by_id -> get_product_by_id (path: /api/product_by_id)
+[2025-12-15 01:27:19,574] DEBUG in __init__: Created endpoint alias: main.get_product_by_brand_query -> get_product_by_brand_query (path: /api/product)
+[2025-12-15 01:27:19,574] DEBUG in __init__: Created endpoint alias: main.get_products_by_brand -> get_products_by_brand (path: /api/products/<brand>)
+[2025-12-15 01:27:19,575] DEBUG in __init__: Created endpoint alias: main.get_product_detail -> get_product_detail (path: /api/products/<brand>/<product>)
+[2025-12-15 01:27:19,575] DEBUG in __init__: Created endpoint alias: main.get_homepage_products -> get_homepage_products (path: /api/homepage-products)
+[2025-12-15 01:27:19,575] DEBUG in __init__: Created endpoint alias: main.add_homepage_product -> add_homepage_product (path: /api/homepage-products)
+[2025-12-15 01:27:19,576] DEBUG in __init__: Created endpoint alias: main.update_homepage_product -> update_homepage_product (path: /api/homepage-products/<int:homepage_id>)
+[2025-12-15 01:27:19,576] DEBUG in __init__: Created endpoint alias: main.delete_homepage_product -> delete_homepage_product (path: /api/homepage-products/<int:homepage_id>)
+[2025-12-15 01:27:19,576] DEBUG in __init__: Created endpoint alias: main.add_to_cart -> add_to_cart (path: /api/cart/add)
+[2025-12-15 01:27:19,576] DEBUG in __init__: Created endpoint alias: main.log_order_attempt -> log_order_attempt (path: /api/order-attempts)
+[2025-12-15 01:27:19,577] DEBUG in __init__: Created endpoint alias: main.get_similar_products -> get_similar_products (path: /api/products/similar)
+[2025-12-15 01:27:19,577] DEBUG in __init__: Created endpoint alias: main.get_coupons -> get_coupons (path: /api/coupons)
+[2025-12-15 01:27:19,577] DEBUG in __init__: Created endpoint alias: main.add_coupon -> add_coupon (path: /api/coupons)
+[2025-12-15 01:27:19,578] DEBUG in __init__: Created endpoint alias: main.update_coupon -> update_coupon (path: /api/coupons/<code>)
+[2025-12-15 01:27:19,578] DEBUG in __init__: Created endpoint alias: main.delete_coupon -> delete_coupon (path: /api/coupons/<code>)
+[2025-12-15 01:27:19,578] DEBUG in __init__: Created endpoint alias: main.get_orders -> get_orders (path: /api/orders)
+[2025-12-15 01:27:19,578] DEBUG in __init__: Created endpoint alias: main.add_order -> add_order (path: /api/orders)
+[2025-12-15 01:27:19,579] DEBUG in __init__: Created endpoint alias: main.update_order -> update_order (path: /api/orders/<int:order_id>)
+[2025-12-15 01:27:19,579] DEBUG in __init__: Created endpoint alias: main.delete_order -> delete_order (path: /api/orders/<int:order_id>)
+[2025-12-15 01:27:19,579] DEBUG in __init__: Created endpoint alias: main.offers -> offers (path: /offers)
+[2025-12-15 01:27:19,579] DEBUG in __init__: Created endpoint alias: main.index -> index (path: /)
+[2025-12-15 01:27:19,580] DEBUG in __init__: Created endpoint alias: main.men -> men (path: /men)
+[2025-12-15 01:27:19,580] DEBUG in __init__: Created endpoint alias: main.women -> women (path: /women)
+[2025-12-15 01:27:19,580] DEBUG in __init__: Created endpoint alias: main.beauty -> beauty (path: /beauty)
+[2025-12-15 01:27:19,581] DEBUG in __init__: Created endpoint alias: main.login_page -> login_page (path: /login)
+[2025-12-15 01:27:19,581] DEBUG in __init__: Created endpoint alias: main.signup -> signup (path: /signup)
+[2025-12-15 01:27:19,581] DEBUG in __init__: Created endpoint alias: main.brand_page -> brand_page (path: /brand/<brand>)
+[2025-12-15 01:27:19,581] DEBUG in __init__: Created endpoint alias: main.brand_product_page -> brand_product_page (path: /brand/<brand>/product/<product>)
+[2025-12-15 01:27:19,582] DEBUG in __init__: Created endpoint alias: main.story_detail_page -> story_detail_page (path: /story/<slug>)
+[2025-12-15 01:27:19,582] DEBUG in __init__: Created endpoint alias: main.stories_index -> stories_index (path: /stories)
+[2025-12-15 01:27:19,582] DEBUG in __init__: Created endpoint alias: main.history -> history (path: /history)
+[2025-12-15 01:27:19,583] DEBUG in __init__: Created endpoint alias: main.about -> about (path: /about)
+[2025-12-15 01:27:19,583] DEBUG in __init__: Created endpoint alias: main.favicon -> favicon (path: /favicon.ico)
+[2025-12-15 01:27:21,030] DEBUG in payments_paypal: payments persistence models not available: cannot import name 'PayPalWebhookEvent' from 'app.models_payments' (D:\WPerfumes\app\models_payments.py)
+[2025-12-15 01:27:21,047] DEBUG in __init__: Registered PayPal payments blueprint with prefix /paypal
+[2025-12-15 01:27:21,079] DEBUG in __init__: Registered payments-admin blueprint with prefix /payments-admin
+[2025-12-15 01:27:21,080] DEBUG in __init__: Database configured at: postgresql://wperfumes_zbnw_user:M3NuqINTvVPywCuemEmXnrqHjyOkTdek@dpg-d4h98lruibrs73df6geg-a.oregon-postgres.render.com/wperfumes_zbnw
+[2025-12-15 01:27:21,080] DEBUG in __init__: Registered routes:
+[2025-12-15 01:27:21,081] DEBUG in __init__: /static/<path:filename> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,082] DEBUG in __init__: /admin -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,082] DEBUG in __init__: /brands -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,082] DEBUG in __init__: /brand -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,083] DEBUG in __init__: /brand_detail -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,083] DEBUG in __init__: /checkout -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,083] DEBUG in __init__: /cart -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,084] DEBUG in __init__: /forgot_password -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,084] DEBUG in __init__: /api/auth/login -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,084] DEBUG in __init__: /api/auth/logout -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,085] DEBUG in __init__: /api/brands -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,085] DEBUG in __init__: /api/brands -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,086] DEBUG in __init__: /api/brands/<name> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:21,086] DEBUG in __init__: /api/brands/<name> -> methods=['DELETE', 'OPTIONS']
+[2025-12-15 01:27:21,087] DEBUG in __init__: /api/products -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,087] DEBUG in __init__: /api/products -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,088] DEBUG in __init__: /api/products/<id> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:21,088] DEBUG in __init__: /api/products/<id> -> methods=['DELETE', 'OPTIONS']
+[2025-12-15 01:27:21,089] DEBUG in __init__: /api/products/status/<id> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:21,089] DEBUG in __init__: /api/product_by_id -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,089] DEBUG in __init__: /api/product -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,090] DEBUG in __init__: /api/products/<brand> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,090] DEBUG in __init__: /api/products/<brand>/<product> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,090] DEBUG in __init__: /api/homepage-products -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,091] DEBUG in __init__: /api/homepage-products -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,091] DEBUG in __init__: /api/homepage-products/<int:homepage_id> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:21,091] DEBUG in __init__: /api/homepage-products/<int:homepage_id> -> methods=['DELETE', 'OPTIONS']
+[2025-12-15 01:27:21,092] DEBUG in __init__: /api/cart/add -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,092] DEBUG in __init__: /api/order-attempts -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,092] DEBUG in __init__: /api/products/similar -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,093] DEBUG in __init__: /api/coupons -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,093] DEBUG in __init__: /api/coupons -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,093] DEBUG in __init__: /api/coupons/<code> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:21,094] DEBUG in __init__: /api/coupons/<code> -> methods=['DELETE', 'OPTIONS']
+[2025-12-15 01:27:21,094] DEBUG in __init__: /api/orders -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,094] DEBUG in __init__: /api/orders -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,094] DEBUG in __init__: /api/orders/<int:order_id> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:21,095] DEBUG in __init__: /api/orders/<int:order_id> -> methods=['DELETE', 'OPTIONS']
+[2025-12-15 01:27:21,095] DEBUG in __init__: /offers -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,095] DEBUG in __init__: / -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,096] DEBUG in __init__: /men -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,096] DEBUG in __init__: /women -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,096] DEBUG in __init__: /beauty -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,097] DEBUG in __init__: /login -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,097] DEBUG in __init__: /signup -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,097] DEBUG in __init__: /brand/<brand> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,098] DEBUG in __init__: /brand/<brand>/product/<product> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,098] DEBUG in __init__: /story/<slug> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,098] DEBUG in __init__: /stories -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,098] DEBUG in __init__: /history -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,099] DEBUG in __init__: /about -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,099] DEBUG in __init__: /favicon.ico -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,099] DEBUG in __init__: /admin -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,100] DEBUG in __init__: /brands -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,100] DEBUG in __init__: /brand -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,100] DEBUG in __init__: /brand_detail -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,101] DEBUG in __init__: /checkout -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,101] DEBUG in __init__: /cart -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,101] DEBUG in __init__: /forgot_password -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,106] DEBUG in __init__: /api/auth/login -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,107] DEBUG in __init__: /api/auth/logout -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,107] DEBUG in __init__: /api/brands -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,107] DEBUG in __init__: /api/brands -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,108] DEBUG in __init__: /api/brands/<name> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:21,108] DEBUG in __init__: /api/brands/<name> -> methods=['DELETE', 'OPTIONS']
+[2025-12-15 01:27:21,108] DEBUG in __init__: /api/products -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,109] DEBUG in __init__: /api/products -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,109] DEBUG in __init__: /api/products/<id> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:21,109] DEBUG in __init__: /api/products/<id> -> methods=['DELETE', 'OPTIONS']
+[2025-12-15 01:27:21,109] DEBUG in __init__: /api/products/status/<id> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:21,110] DEBUG in __init__: /api/product_by_id -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,110] DEBUG in __init__: /api/product -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,110] DEBUG in __init__: /api/products/<brand> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,111] DEBUG in __init__: /api/products/<brand>/<product> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,111] DEBUG in __init__: /api/homepage-products -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,111] DEBUG in __init__: /api/homepage-products -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,112] DEBUG in __init__: /api/homepage-products/<int:homepage_id> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:21,112] DEBUG in __init__: /api/homepage-products/<int:homepage_id> -> methods=['DELETE', 'OPTIONS']
+[2025-12-15 01:27:21,112] DEBUG in __init__: /api/cart/add -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,113] DEBUG in __init__: /api/order-attempts -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,113] DEBUG in __init__: /api/products/similar -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,113] DEBUG in __init__: /api/coupons -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,113] DEBUG in __init__: /api/coupons -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,114] DEBUG in __init__: /api/coupons/<code> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:21,114] DEBUG in __init__: /api/coupons/<code> -> methods=['DELETE', 'OPTIONS']
+[2025-12-15 01:27:21,114] DEBUG in __init__: /api/orders -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,115] DEBUG in __init__: /api/orders -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,115] DEBUG in __init__: /api/orders/<int:order_id> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:21,115] DEBUG in __init__: /api/orders/<int:order_id> -> methods=['DELETE', 'OPTIONS']
+[2025-12-15 01:27:21,116] DEBUG in __init__: /offers -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,116] DEBUG in __init__: / -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,116] DEBUG in __init__: /men -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,117] DEBUG in __init__: /women -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,117] DEBUG in __init__: /beauty -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,117] DEBUG in __init__: /login -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,117] DEBUG in __init__: /signup -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,118] DEBUG in __init__: /brand/<brand> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,121] DEBUG in __init__: /brand/<brand>/product/<product> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,121] DEBUG in __init__: /story/<slug> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,122] DEBUG in __init__: /stories -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,122] DEBUG in __init__: /history -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,123] DEBUG in __init__: /about -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,123] DEBUG in __init__: /favicon.ico -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,123] DEBUG in __init__: /api/settings/checkout_discount -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,124] DEBUG in __init__: /api/settings/checkout_discount -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:21,124] DEBUG in __init__: /api/settings/price_comparison -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,124] DEBUG in __init__: /api/settings/price_comparison -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:21,125] DEBUG in __init__: /api/settings/price_comparison/push -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,125] DEBUG in __init__: /api/top-picks -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,125] DEBUG in __init__: /api/top-picks -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,126] DEBUG in __init__: /api/top-picks/<tp_id> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,126] DEBUG in __init__: /api/top-picks/<tp_id> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:21,126] DEBUG in __init__: /api/top-picks/<tp_id> -> methods=['DELETE', 'OPTIONS']
+[2025-12-15 01:27:21,126] DEBUG in __init__: /api/top-picks/<tp_id>/push -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,127] DEBUG in __init__: /content-api/pages/<slug> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,127] DEBUG in __init__: /content-api/stories -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,127] DEBUG in __init__: /content-api/stories/<slug> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,128] DEBUG in __init__: /content-api/admin/stories -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,128] DEBUG in __init__: /content-api/admin/stories -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,128] DEBUG in __init__: /content-api/admin/stories/<int:story_id> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:21,129] DEBUG in __init__: /content-api/admin/stories/<int:story_id> -> methods=['DELETE', 'OPTIONS']
+[2025-12-15 01:27:21,129] DEBUG in __init__: /content-api/admin/stories/<int:story_id>/publish -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,129] DEBUG in __init__: /content-api/admin/stories/reorder -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,130] DEBUG in __init__: /content-api/admin/upload-image -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,130] DEBUG in __init__: /content-api/admin -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,130] DEBUG in __init__: /content-admin -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,131] DEBUG in __init__: /api/search -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,131] DEBUG in __init__: /price-comparison/<product_id> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,131] DEBUG in __init__: /price-comparison -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,132] DEBUG in __init__: /api/price-compare -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,132] DEBUG in __init__: /paypal/client-config -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,132] DEBUG in __init__: /paypal/create-paypal-order -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,132] DEBUG in __init__: /paypal/capture-paypal-order -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,133] DEBUG in __init__: /paypal/return -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,133] DEBUG in __init__: /paypal/cancel -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,133] DEBUG in __init__: /paypal/webhook -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,134] DEBUG in __init__: /payments-admin/ -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,134] DEBUG in __init__: /payments-admin/manage-users -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,134] DEBUG in __init__: /payments-admin/api/manage-users -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,137] DEBUG in __init__: /payments-admin/api/manage-users -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,137] DEBUG in __init__: /payments-admin/api/payments -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,138] DEBUG in __init__: /payments-admin/api/payments/<int:payment_id> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:21,138] DEBUG in __init__: /payments-admin/api/payments/<int:payment_id>/refund -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,138] DEBUG in __init__: /payments-admin/api/refund -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:21,139] DEBUG in __init__: /payments-admin/api/payments/<int:payment_id> -> methods=['OPTIONS', 'PUT']
+ * Serving Flask app 'run.py'
+ * Debug mode: on
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5000
+Press CTRL+C to quit
+ * Restarting with stat
+[2025-12-15 01:27:26,908] DEBUG in __init__: Setting SQLALCHEMY_ENGINE_OPTIONS.connect_args.sslmode=require
+[2025-12-15 01:27:27,507] DEBUG in __init__: Created endpoint alias: main.admin_dashboard -> admin_dashboard (path: /admin)
+[2025-12-15 01:27:27,508] DEBUG in __init__: Created endpoint alias: main.brands -> brands (path: /brands)
+[2025-12-15 01:27:27,508] DEBUG in __init__: Created endpoint alias: main.brand -> brand (path: /brand)
+[2025-12-15 01:27:27,509] DEBUG in __init__: Created endpoint alias: main.brand_detail -> brand_detail (path: /brand_detail)
+[2025-12-15 01:27:27,509] DEBUG in __init__: Created endpoint alias: main.checkout -> checkout (path: /checkout)
+[2025-12-15 01:27:27,509] DEBUG in __init__: Created endpoint alias: main.cart -> cart (path: /cart)
+[2025-12-15 01:27:27,510] DEBUG in __init__: Created endpoint alias: main.forgot_password -> forgot_password (path: /forgot_password)
+[2025-12-15 01:27:27,510] DEBUG in __init__: Created endpoint alias: main.login -> login (path: /api/auth/login)
+[2025-12-15 01:27:27,511] DEBUG in __init__: Created endpoint alias: main.logout -> logout (path: /api/auth/logout)
+[2025-12-15 01:27:27,511] DEBUG in __init__: Created endpoint alias: main.get_brands -> get_brands (path: /api/brands)
+[2025-12-15 01:27:27,511] DEBUG in __init__: Created endpoint alias: main.add_brand -> add_brand (path: /api/brands)
+[2025-12-15 01:27:27,512] DEBUG in __init__: Created endpoint alias: main.update_brand -> update_brand (path: /api/brands/<name>)
+[2025-12-15 01:27:27,512] DEBUG in __init__: Created endpoint alias: main.delete_brand -> delete_brand (path: /api/brands/<name>)
+[2025-12-15 01:27:27,512] DEBUG in __init__: Created endpoint alias: main.get_products -> get_products (path: /api/products)
+[2025-12-15 01:27:27,512] DEBUG in __init__: Created endpoint alias: main.add_product -> add_product (path: /api/products)
+[2025-12-15 01:27:27,513] DEBUG in __init__: Created endpoint alias: main.update_product -> update_product (path: /api/products/<id>)
+[2025-12-15 01:27:27,513] DEBUG in __init__: Created endpoint alias: main.delete_product -> delete_product (path: /api/products/<id>)
+[2025-12-15 01:27:27,513] DEBUG in __init__: Created endpoint alias: main.update_product_status -> update_product_status (path: /api/products/status/<id>)
+[2025-12-15 01:27:27,514] DEBUG in __init__: Created endpoint alias: main.get_product_by_id -> get_product_by_id (path: /api/product_by_id)
+[2025-12-15 01:27:27,514] DEBUG in __init__: Created endpoint alias: main.get_product_by_brand_query -> get_product_by_brand_query (path: /api/product)
+[2025-12-15 01:27:27,514] DEBUG in __init__: Created endpoint alias: main.get_products_by_brand -> get_products_by_brand (path: /api/products/<brand>)
+[2025-12-15 01:27:27,514] DEBUG in __init__: Created endpoint alias: main.get_product_detail -> get_product_detail (path: /api/products/<brand>/<product>)
+[2025-12-15 01:27:27,515] DEBUG in __init__: Created endpoint alias: main.get_homepage_products -> get_homepage_products (path: /api/homepage-products)
+[2025-12-15 01:27:27,515] DEBUG in __init__: Created endpoint alias: main.add_homepage_product -> add_homepage_product (path: /api/homepage-products)
+[2025-12-15 01:27:27,515] DEBUG in __init__: Created endpoint alias: main.update_homepage_product -> update_homepage_product (path: /api/homepage-products/<int:homepage_id>)
+[2025-12-15 01:27:27,516] DEBUG in __init__: Created endpoint alias: main.delete_homepage_product -> delete_homepage_product (path: /api/homepage-products/<int:homepage_id>)
+[2025-12-15 01:27:27,516] DEBUG in __init__: Created endpoint alias: main.add_to_cart -> add_to_cart (path: /api/cart/add)
+[2025-12-15 01:27:27,516] DEBUG in __init__: Created endpoint alias: main.log_order_attempt -> log_order_attempt (path: /api/order-attempts)
+[2025-12-15 01:27:27,516] DEBUG in __init__: Created endpoint alias: main.get_similar_products -> get_similar_products (path: /api/products/similar)
+[2025-12-15 01:27:27,517] DEBUG in __init__: Created endpoint alias: main.get_coupons -> get_coupons (path: /api/coupons)
+[2025-12-15 01:27:27,517] DEBUG in __init__: Created endpoint alias: main.add_coupon -> add_coupon (path: /api/coupons)
+[2025-12-15 01:27:27,517] DEBUG in __init__: Created endpoint alias: main.update_coupon -> update_coupon (path: /api/coupons/<code>)
+[2025-12-15 01:27:27,517] DEBUG in __init__: Created endpoint alias: main.delete_coupon -> delete_coupon (path: /api/coupons/<code>)
+[2025-12-15 01:27:27,518] DEBUG in __init__: Created endpoint alias: main.get_orders -> get_orders (path: /api/orders)
+[2025-12-15 01:27:27,518] DEBUG in __init__: Created endpoint alias: main.add_order -> add_order (path: /api/orders)
+[2025-12-15 01:27:27,518] DEBUG in __init__: Created endpoint alias: main.update_order -> update_order (path: /api/orders/<int:order_id>)
+[2025-12-15 01:27:27,519] DEBUG in __init__: Created endpoint alias: main.delete_order -> delete_order (path: /api/orders/<int:order_id>)
+[2025-12-15 01:27:27,519] DEBUG in __init__: Created endpoint alias: main.offers -> offers (path: /offers)
+[2025-12-15 01:27:27,519] DEBUG in __init__: Created endpoint alias: main.index -> index (path: /)
+[2025-12-15 01:27:27,519] DEBUG in __init__: Created endpoint alias: main.men -> men (path: /men)
+[2025-12-15 01:27:27,520] DEBUG in __init__: Created endpoint alias: main.women -> women (path: /women)
+[2025-12-15 01:27:27,520] DEBUG in __init__: Created endpoint alias: main.beauty -> beauty (path: /beauty)
+[2025-12-15 01:27:27,520] DEBUG in __init__: Created endpoint alias: main.login_page -> login_page (path: /login)
+[2025-12-15 01:27:27,521] DEBUG in __init__: Created endpoint alias: main.signup -> signup (path: /signup)
+[2025-12-15 01:27:27,521] DEBUG in __init__: Created endpoint alias: main.brand_page -> brand_page (path: /brand/<brand>)
+[2025-12-15 01:27:27,521] DEBUG in __init__: Created endpoint alias: main.brand_product_page -> brand_product_page (path: /brand/<brand>/product/<product>)
+[2025-12-15 01:27:27,521] DEBUG in __init__: Created endpoint alias: main.story_detail_page -> story_detail_page (path: /story/<slug>)
+[2025-12-15 01:27:27,522] DEBUG in __init__: Created endpoint alias: main.stories_index -> stories_index (path: /stories)
+[2025-12-15 01:27:27,522] DEBUG in __init__: Created endpoint alias: main.history -> history (path: /history)
+[2025-12-15 01:27:27,522] DEBUG in __init__: Created endpoint alias: main.about -> about (path: /about)
+[2025-12-15 01:27:27,522] DEBUG in __init__: Created endpoint alias: main.favicon -> favicon (path: /favicon.ico)
+[2025-12-15 01:27:28,173] DEBUG in payments_paypal: payments persistence models not available: cannot import name 'PayPalWebhookEvent' from 'app.models_payments' (D:\WPerfumes\app\models_payments.py)
+[2025-12-15 01:27:28,195] DEBUG in __init__: Registered PayPal payments blueprint with prefix /paypal
+[2025-12-15 01:27:28,237] DEBUG in __init__: Registered payments-admin blueprint with prefix /payments-admin
+[2025-12-15 01:27:28,239] DEBUG in __init__: Database configured at: postgresql://wperfumes_zbnw_user:M3NuqINTvVPywCuemEmXnrqHjyOkTdek@dpg-d4h98lruibrs73df6geg-a.oregon-postgres.render.com/wperfumes_zbnw
+[2025-12-15 01:27:28,239] DEBUG in __init__: Registered routes:
+[2025-12-15 01:27:28,240] DEBUG in __init__: /static/<path:filename> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,241] DEBUG in __init__: /admin -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,241] DEBUG in __init__: /brands -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,241] DEBUG in __init__: /brand -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,243] DEBUG in __init__: /brand_detail -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,243] DEBUG in __init__: /checkout -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,244] DEBUG in __init__: /cart -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,244] DEBUG in __init__: /forgot_password -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,245] DEBUG in __init__: /api/auth/login -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,252] DEBUG in __init__: /api/auth/logout -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,252] DEBUG in __init__: /api/brands -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,253] DEBUG in __init__: /api/brands -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,253] DEBUG in __init__: /api/brands/<name> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:28,253] DEBUG in __init__: /api/brands/<name> -> methods=['DELETE', 'OPTIONS']
+[2025-12-15 01:27:28,256] DEBUG in __init__: /api/products -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,256] DEBUG in __init__: /api/products -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,257] DEBUG in __init__: /api/products/<id> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:28,257] DEBUG in __init__: /api/products/<id> -> methods=['DELETE', 'OPTIONS']
+[2025-12-15 01:27:28,257] DEBUG in __init__: /api/products/status/<id> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:28,257] DEBUG in __init__: /api/product_by_id -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,260] DEBUG in __init__: /api/product -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,260] DEBUG in __init__: /api/products/<brand> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,261] DEBUG in __init__: /api/products/<brand>/<product> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,261] DEBUG in __init__: /api/homepage-products -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,261] DEBUG in __init__: /api/homepage-products -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,264] DEBUG in __init__: /api/homepage-products/<int:homepage_id> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:28,264] DEBUG in __init__: /api/homepage-products/<int:homepage_id> -> methods=['DELETE', 'OPTIONS']
+[2025-12-15 01:27:28,268] DEBUG in __init__: /api/cart/add -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,269] DEBUG in __init__: /api/order-attempts -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,269] DEBUG in __init__: /api/products/similar -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,269] DEBUG in __init__: /api/coupons -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,273] DEBUG in __init__: /api/coupons -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,280] DEBUG in __init__: /api/coupons/<code> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:28,280] DEBUG in __init__: /api/coupons/<code> -> methods=['DELETE', 'OPTIONS']
+[2025-12-15 01:27:28,280] DEBUG in __init__: /api/orders -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,281] DEBUG in __init__: /api/orders -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,285] DEBUG in __init__: /api/orders/<int:order_id> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:28,285] DEBUG in __init__: /api/orders/<int:order_id> -> methods=['DELETE', 'OPTIONS']
+[2025-12-15 01:27:28,288] DEBUG in __init__: /offers -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,289] DEBUG in __init__: / -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,289] DEBUG in __init__: /men -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,289] DEBUG in __init__: /women -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,292] DEBUG in __init__: /beauty -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,292] DEBUG in __init__: /login -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,293] DEBUG in __init__: /signup -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,293] DEBUG in __init__: /brand/<brand> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,293] DEBUG in __init__: /brand/<brand>/product/<product> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,296] DEBUG in __init__: /story/<slug> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,297] DEBUG in __init__: /stories -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,297] DEBUG in __init__: /history -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,297] DEBUG in __init__: /about -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,298] DEBUG in __init__: /favicon.ico -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,304] DEBUG in __init__: /admin -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,304] DEBUG in __init__: /brands -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,305] DEBUG in __init__: /brand -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,305] DEBUG in __init__: /brand_detail -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,305] DEBUG in __init__: /checkout -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,309] DEBUG in __init__: /cart -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,309] DEBUG in __init__: /forgot_password -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,310] DEBUG in __init__: /api/auth/login -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,312] DEBUG in __init__: /api/auth/logout -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,312] DEBUG in __init__: /api/brands -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,313] DEBUG in __init__: /api/brands -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,313] DEBUG in __init__: /api/brands/<name> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:28,314] DEBUG in __init__: /api/brands/<name> -> methods=['DELETE', 'OPTIONS']
+[2025-12-15 01:27:28,316] DEBUG in __init__: /api/products -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,317] DEBUG in __init__: /api/products -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,325] DEBUG in __init__: /api/products/<id> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:28,325] DEBUG in __init__: /api/products/<id> -> methods=['DELETE', 'OPTIONS']
+[2025-12-15 01:27:28,330] DEBUG in __init__: /api/products/status/<id> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:28,333] DEBUG in __init__: /api/product_by_id -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,333] DEBUG in __init__: /api/product -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,335] DEBUG in __init__: /api/products/<brand> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,335] DEBUG in __init__: /api/products/<brand>/<product> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,336] DEBUG in __init__: /api/homepage-products -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,336] DEBUG in __init__: /api/homepage-products -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,337] DEBUG in __init__: /api/homepage-products/<int:homepage_id> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:28,337] DEBUG in __init__: /api/homepage-products/<int:homepage_id> -> methods=['DELETE', 'OPTIONS']
+[2025-12-15 01:27:28,337] DEBUG in __init__: /api/cart/add -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,338] DEBUG in __init__: /api/order-attempts -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,338] DEBUG in __init__: /api/products/similar -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,339] DEBUG in __init__: /api/coupons -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,340] DEBUG in __init__: /api/coupons -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,340] DEBUG in __init__: /api/coupons/<code> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:28,340] DEBUG in __init__: /api/coupons/<code> -> methods=['DELETE', 'OPTIONS']
+[2025-12-15 01:27:28,341] DEBUG in __init__: /api/orders -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,341] DEBUG in __init__: /api/orders -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,341] DEBUG in __init__: /api/orders/<int:order_id> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:28,373] DEBUG in __init__: /api/orders/<int:order_id> -> methods=['DELETE', 'OPTIONS']
+[2025-12-15 01:27:28,373] DEBUG in __init__: /offers -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,376] DEBUG in __init__: / -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,377] DEBUG in __init__: /men -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,377] DEBUG in __init__: /women -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,377] DEBUG in __init__: /beauty -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,378] DEBUG in __init__: /login -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,380] DEBUG in __init__: /signup -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,380] DEBUG in __init__: /brand/<brand> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,381] DEBUG in __init__: /brand/<brand>/product/<product> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,396] DEBUG in __init__: /story/<slug> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,397] DEBUG in __init__: /stories -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,409] DEBUG in __init__: /history -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,412] DEBUG in __init__: /about -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,413] DEBUG in __init__: /favicon.ico -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,413] DEBUG in __init__: /api/settings/checkout_discount -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,435] DEBUG in __init__: /api/settings/checkout_discount -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:28,436] DEBUG in __init__: /api/settings/price_comparison -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,436] DEBUG in __init__: /api/settings/price_comparison -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:28,436] DEBUG in __init__: /api/settings/price_comparison/push -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,441] DEBUG in __init__: /api/top-picks -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,441] DEBUG in __init__: /api/top-picks -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,441] DEBUG in __init__: /api/top-picks/<tp_id> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,444] DEBUG in __init__: /api/top-picks/<tp_id> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:28,445] DEBUG in __init__: /api/top-picks/<tp_id> -> methods=['DELETE', 'OPTIONS']
+[2025-12-15 01:27:28,445] DEBUG in __init__: /api/top-picks/<tp_id>/push -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,445] DEBUG in __init__: /content-api/pages/<slug> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,446] DEBUG in __init__: /content-api/stories -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,447] DEBUG in __init__: /content-api/stories/<slug> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,447] DEBUG in __init__: /content-api/admin/stories -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,451] DEBUG in __init__: /content-api/admin/stories -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,451] DEBUG in __init__: /content-api/admin/stories/<int:story_id> -> methods=['OPTIONS', 'PUT']
+[2025-12-15 01:27:28,452] DEBUG in __init__: /content-api/admin/stories/<int:story_id> -> methods=['DELETE', 'OPTIONS']
+[2025-12-15 01:27:28,452] DEBUG in __init__: /content-api/admin/stories/<int:story_id>/publish -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,453] DEBUG in __init__: /content-api/admin/stories/reorder -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,453] DEBUG in __init__: /content-api/admin/upload-image -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,455] DEBUG in __init__: /content-api/admin -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,457] DEBUG in __init__: /content-admin -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,458] DEBUG in __init__: /api/search -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,459] DEBUG in __init__: /price-comparison/<product_id> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,464] DEBUG in __init__: /price-comparison -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,468] DEBUG in __init__: /api/price-compare -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,469] DEBUG in __init__: /paypal/client-config -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,469] DEBUG in __init__: /paypal/create-paypal-order -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,469] DEBUG in __init__: /paypal/capture-paypal-order -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,473] DEBUG in __init__: /paypal/return -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,473] DEBUG in __init__: /paypal/cancel -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,475] DEBUG in __init__: /paypal/webhook -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,475] DEBUG in __init__: /payments-admin/ -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,476] DEBUG in __init__: /payments-admin/manage-users -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,477] DEBUG in __init__: /payments-admin/api/manage-users -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,477] DEBUG in __init__: /payments-admin/api/manage-users -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,479] DEBUG in __init__: /payments-admin/api/payments -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,480] DEBUG in __init__: /payments-admin/api/payments/<int:payment_id> -> methods=['GET', 'HEAD', 'OPTIONS']
+[2025-12-15 01:27:28,480] DEBUG in __init__: /payments-admin/api/payments/<int:payment_id>/refund -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,480] DEBUG in __init__: /payments-admin/api/refund -> methods=['OPTIONS', 'POST']
+[2025-12-15 01:27:28,483] DEBUG in __init__: /payments-admin/api/payments/<int:payment_id> -> methods=['OPTIONS', 'PUT']
+ * Debugger is active!
+ * Debugger PIN: 116-976-603
+127.0.0.1 - - [15/Dec/2025 01:27:44] "GET /payments-admin/api/payments?page=1&per_page=25&duration=daily HTTP/1.1" 401 -
