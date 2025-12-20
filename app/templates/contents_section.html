@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{{ section or "Content" }} — WPerfumes</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+
+<body>
+    <nav>
+        <a href="{{ url_for('main.index') if url_for is defined else '/' }}">Home</a> |
+        <a href="/brands">Fragrances</a> |
+        <a href="/price-comparison">Compare Prices</a> |
+        <a href="/static/pages/history.html">History</a> |
+        <a href="/static/pages/about.html">About Us</a>
+    </nav>
+
+    <main>
+        <h1>{{ section or "Section" }}</h1>
+
+        {% if latest %}
+        <section>
+            <h2>Latest</h2>
+            <ul>
+                {% for item in latest %}
+                <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+        </section>
+        {% endif %}
+
+        {% if stories %}
+        <section>
+            <h2>Stories</h2>
+            <ul>
+                {% for s in stories %}
+                <li><strong>{{ s.title if s.title is defined else s }}</strong>
+                    {% if s.excerpt %}- {{ s.excerpt }}{% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </section>
+        {% endif %}
+
+        {% if others %}
+        <section>
+            <h2>Other content</h2>
+            <pre>{{ others }}</pre>
+        </section>
+        {% endif %}
+    </main>
+
+    <footer>
+        <p>&copy; WPerfumes</p>
+    </footer>
+</body>
+
+</html>
