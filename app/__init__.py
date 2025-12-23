@@ -2,11 +2,11 @@
 
 Application factory and extension initialization for the WPerfumes Flask app.
 
-This file is an improved, drop-in replacement that:
+This file:
  - Normalizes DATABASE_URL (postgres:// -> postgresql://)
+ - Adds sslmode=require to Postgres DSNs if missing
  - Falls back to SQLite for local dev if DATABASE_URL is not set
  - Applies robust SQLAlchemy engine options (pool_pre_ping, pool_size, etc.)
- - Sets sslmode=require for Postgres when not specified
  - Registers an OperationalError handler to return 503 JSON (avoids leaking tracebacks)
  - Initializes extensions and registers blueprints in a fault-tolerant way
 """
@@ -31,6 +31,22 @@ def _normalize_database_url(url: str) -> str:
     if url.startswith("postgres://"):
         return url.replace("postgres://", "postgresql://", 1)
     return url
+
+
+def _ensure_postgres_sslmode(url: str, sslmode_value: str = "require") -> str:
+    """
+    If url is a postgresql:// DSN and doesn't contain sslmode=, append sslmode=require.
+    Preserves any existing query parameters.
+    """
+    if not url:
+        return url
+    u = url
+    if u.startswith("postgresql://") and "sslmode=" not in u:
+        if "?" in u:
+            u = u + "&sslmode=" + sslmode_value
+        else:
+            u = u + "?sslmode=" + sslmode_value
+    return u
 
 
 def _expose_unprefixed_endpoints(app: Flask, blueprint_name: str) -> None:
@@ -89,14 +105,21 @@ def create_app(test_config=None) -> Flask:
         app.logger.warning(
             "DATABASE_URL not set - falling back to local sqlite at %s", dev_sqlite)
 
+    # Normalize scheme
     database_url = _normalize_database_url(database_url)
+
+    # If Postgres, ensure sslmode is present (many managed DBs require this)
+    # Priority: explicit sslmode in DATABASE_URL > PGSSLMODE env var > default 'require'
+    pg_sslmode = os.environ.get("PGSSLMODE", "require")
+    database_url = _ensure_postgres_sslmode(
+        database_url, sslmode_value=pg_sslmode)
+
     app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 
     # Default engine options to be resilient to transient DB issues.
     engine_opts = app.config.get("SQLALCHEMY_ENGINE_OPTIONS", {}) or {}
 
     # sensible pool defaults if caller hasn't set them
-    # avoids using stale connections
     engine_opts.setdefault("pool_pre_ping", True)
     engine_opts.setdefault("pool_size", int(
         os.environ.get("SQL_POOL_SIZE", 5)))
@@ -107,13 +130,12 @@ def create_app(test_config=None) -> Flask:
     engine_opts.setdefault("pool_recycle", int(
         os.environ.get("SQL_POOL_RECYCLE", 1800)))
 
-    # If connecting to Postgres and sslmode wasn't specified, instruct SQLAlchemy/psycopg2 to require SSL.
+    # As an additional safety, if Postgres and connect_args not set, provide sslmode via connect_args too.
     try:
-        if database_url.startswith("postgresql://") and "sslmode=" not in database_url:
-            # only set connect_args if not already present
+        if database_url.startswith("postgresql://"):
+            # If sslmode not in DSN for some reason, we already appended it above.
             if "connect_args" not in engine_opts:
-                engine_opts["connect_args"] = {
-                    "sslmode": os.environ.get("PGSSLMODE", "require")}
+                engine_opts["connect_args"] = {"sslmode": pg_sslmode}
                 app.logger.debug("Setting SQLALCHEMY_ENGINE_OPTIONS.connect_args.sslmode=%s",
                                  engine_opts["connect_args"]["sslmode"])
     except Exception:
@@ -156,7 +178,7 @@ def create_app(test_config=None) -> Flask:
     except Exception:
         app.logger.debug("Could not register OperationalError handler")
 
-    # Register blueprints (same pattern as before) - keep the existing import/register logic
+    # Register blueprints (same pattern as before)
     try:
         from . import models  # noqa: F401
     except Exception:
@@ -181,7 +203,7 @@ def create_app(test_config=None) -> Flask:
     except Exception as e:
         app.logger.debug(f"Failed to register routes blueprint: {e}")
 
-    # register other blueprints in a fault tolerant manner (unchanged)
+    # register other blueprints in a fault tolerant manner
     try:
         from .routes_settings import settings_bp
         app.register_blueprint(settings_bp)
@@ -222,10 +244,9 @@ def create_app(test_config=None) -> Flask:
     except Exception as e:
         app.logger.debug(f"Failed to register PayPal blueprint: {e}")
 
-    # register payments-admin blueprint (existing file routes_payments_admin.py defines url_prefix)
+    # register payments-admin blueprint
     try:
         from .routes_payments_admin import bp as payments_admin_bp
-        # uses url_prefix defined in blueprint
         app.register_blueprint(payments_admin_bp)
         app.logger.debug(
             "Registered payments-admin blueprint with prefix /payments-admin")
@@ -233,9 +254,9 @@ def create_app(test_config=None) -> Flask:
         app.logger.debug(f"Failed to register payments-admin blueprint: {e}")
 
     try:
-        # Set Jinja globals for PayPal client id/mode/currency.
+        # Set Jinja globals for PayPal client id/mode/currency (read from environment)
         app.jinja_env.globals['PAYPAL_CLIENT_ID'] = os.environ.get(
-            "PAYPAL_CLIENT_ID", "Aex5V6cd5gPmzyKIQ48BSM6iqwfpcZh_8YtxE_Dtn-F5txEJ1q4aaYguPAah098_VIAg6G5JnXJEZT3v")
+            "PAYPAL_CLIENT_ID", "")
         app.jinja_env.globals['PAYPAL_MODE'] = (
             os.environ.get("PAYPAL_MODE") or "sandbox").lower()
         app.jinja_env.globals['PAYPAL_CURRENCY'] = os.environ.get(
@@ -243,15 +264,24 @@ def create_app(test_config=None) -> Flask:
     except Exception:
         app.logger.debug("Unable to set PayPal Jinja globals")
 
-    with app.app_context():
-        app.logger.debug("Database configured at: %s",
-                         app.config.get("SQLALCHEMY_DATABASE_URI"))
-        try:
-            app.logger.debug("Registered routes:")
-            for rule in app.url_map.iter_rules():
-                app.logger.debug(f"{rule} -> methods={sorted(rule.methods)}")
-        except Exception:
-            pass
+    # Helpful debug logging about effective DB host (do not log credentials)
+    try:
+        db_uri = app.config.get("SQLALCHEMY_DATABASE_URI", "")
+        host_info = None
+        if db_uri:
+            # extract host part roughly
+            try:
+                # naive parse: postgresql://user:pass@host:port/db?...
+                after_at = db_uri.split(
+                    "@", 1)[-1] if "@" in db_uri else db_uri
+                host_info = after_at.split("/", 1)[0]
+            except Exception:
+                host_info = None
+        app.logger.debug(
+            "Database configured (host/endpoint): %s", host_info or "<unknown>")
+    except Exception:
+        pass
+
     if not app.logger.handlers:
         logging.basicConfig(level=logging.INFO)
     return app

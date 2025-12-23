@@ -31,12 +31,12 @@ paypal_bp = Blueprint("paypal_bp", __name__)
 logger = logging.getLogger(__name__)
 
 # Server-side configuration from environment
-# Replaced with provided sandbox credentials (hard-coded here per user request)
-PAYPAL_CLIENT_ID = "Aex5V6cd5gPmzyKIQ48BSM6iqwfpcZh_8YtxE_Dtn-F5txEJ1q4aaYguPAah098_VIAg6G5JnXJEZT3v"
-PAYPAL_SECRET = "EPsB0GYPkOvjjX4obDvJDjnHmcr2M5U9NsmRS3udNXj1eMDYFgS2V9zEgPE3nduhzC2aNLtLC00PrjFw"
+# Read sensitive credentials from env (do NOT hard-code in repo)
+PAYPAL_CLIENT_ID = os.environ.get("PAYPAL_CLIENT_ID", "")  # set in Render or .env
+PAYPAL_SECRET = os.environ.get("PAYPAL_SECRET", "")        # set in Render or .env
 PAYPAL_MODE = (os.environ.get("PAYPAL_MODE") or "sandbox").lower()
-PAYPAL_WEBHOOK_ID = os.environ.get(
-    "PAYPAL_WEBHOOK_ID", "")  # optional verification id
+PAYPAL_WEBHOOK_ID = os.environ.get("PAYPAL_WEBHOOK_ID", "")  # optional verification id
+PAYPAL_CURRENCY = os.environ.get("PAYPAL_CURRENCY", "USD")
 
 PAYPAL_BASE = "https://api-m.sandbox.paypal.com" if PAYPAL_MODE == "sandbox" else "https://api-m.paypal.com"
 
@@ -203,7 +203,7 @@ def paypal_client_config():
     """
     try:
         mode = PAYPAL_MODE if PAYPAL_MODE in ("sandbox", "live") else "sandbox"
-        return jsonify({"client_id": PAYPAL_CLIENT_ID or "", "mode": mode, "currency": "USD"})
+        return jsonify({"client_id": PAYPAL_CLIENT_ID or "", "mode": mode, "currency": PAYPAL_CURRENCY or "USD"})
     except Exception as e:
         logger.exception("Failed to serve client-config: %s", e)
         return jsonify({"client_id": "", "mode": "sandbox", "currency": "USD"}), 500
@@ -217,7 +217,7 @@ def create_paypal_order():
     """
     data = request.get_json(force=True, silent=True) or {}
     items = data.get("items") or []
-    currency = (data.get("currency") or "USD").upper()
+    currency = (data.get("currency") or PAYPAL_CURRENCY or "USD").upper()
     return_url = data.get("return_url")
     cancel_url = data.get("cancel_url")
     brand_name = data.get(
