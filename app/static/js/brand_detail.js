@@ -1,7 +1,6 @@
 /* brand_detail.js
-   Updated: prefer explicit product_id query param (product_id) when present,
-   otherwise fall back to brand/product slug. This mirrors the change made to
-   the listing page which now passes product_id to guarantee the correct product.
+   Payment UI and PayPal rendering removed from this file per request.
+   This file now focuses on product loading, adding items to cart and opening the shared checkout modal.
 */
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -82,45 +81,231 @@ document.addEventListener('DOMContentLoaded', function () {
     // Keep reference to loaded product so buy-now can add it to cart
     window.currentProduct = null;
 
-    // Attach buy-now click to add to cart using the shared addToCart function (from main.js)
-    function attachBuyNowHandler() {
-        const buyBtn = document.getElementById('addCartBtn'); // intentionally retains id for compatibility
-        if (!buyBtn) return;
-        buyBtn.addEventListener('click', function (e) {
-            e.preventDefault();
-            // If currentProduct is set (populated below), use it; otherwise build a minimal product object from DOM
-            const prod = window.currentProduct || {
-                id: document.getElementById('productName') ? document.getElementById('productName').textContent : (new Date().getTime()),
-                title: document.getElementById('productName') ? document.getElementById('productName').textContent : 'Product',
-                brand: document.getElementById('brandName') ? document.getElementById('brandName').textContent : '',
-                price: (function () {
-                    const p = document.getElementById('productPrice');
-                    if (!p) return 0;
-                    const txt = p.textContent || '';
-                    const num = parseFloat(txt.replace(/[^0-9.]+/g, ''));
-                    return isNaN(num) ? 0 : num;
-                })(),
-                image_url: (document.getElementById('productImage') && document.getElementById('productImage').src) ? document.getElementById('productImage').src : ''
-            };
+    // Local cart helpers (used by modal)
+    function getCart() { return JSON.parse(localStorage.getItem('cart') || '[]'); }
+    function saveCart(c) { localStorage.setItem('cart', JSON.stringify(c)); }
 
-            // addToCart is defined in main.js (shared); call it if available
-            if (typeof window.addToCart === 'function') {
-                addToCart(prod);
-            } else {
-                // fallback: store in localStorage cart and navigate to /cart
+    function addProductObjectToCart(prod, qty = 1) {
+        if (!prod) return;
+        const id = prod.id || prod.product_id || prod._id || prod.title || (new Date().getTime());
+        const title = prod.title || prod.name || (document.getElementById('productName') ? document.getElementById('productName').textContent : 'Product');
+        const brand = prod.brand || (document.getElementById('brandName') ? document.getElementById('brandName').textContent : '');
+        const price = Number(prod.price || prod.unit_price || prod.amount || 0);
+        const image = prod.image || prod.image_url || (document.getElementById('productImage') ? document.getElementById('productImage').src : '');
+
+        let cart = getCart();
+        const existing = cart.find(i => ('' + i.id) === ('' + id));
+        if (existing) {
+            existing.quantity = (existing.quantity || 0) + qty;
+            // update price/image/title/brand if missing
+            existing.price = existing.price || price;
+            existing.image = existing.image || toStaticUrl(image);
+            existing.title = existing.title || title;
+            existing.brand = existing.brand || brand;
+        } else {
+            cart.push({
+                id: id,
+                title: title,
+                brand: brand,
+                price: Number(price) || 0,
+                image: image ? toStaticUrl(image) : '',
+                quantity: qty
+            });
+        }
+        saveCart(cart);
+    }
+
+    // Try to extract product info from a clicked element (data-* attributes) or surrounding product-card
+    function extractProductFromElement(el) {
+        if (!el) return null;
+        // prefer dataset on the clicked element
+        const ds = el.dataset || {};
+        if (ds.title || ds.id || ds.price) {
+            return {
+                id: ds.id || ds.productId || ds.product_id || ds.pid,
+                title: ds.title || ds.name,
+                brand: ds.brand,
+                price: ds.price || ds.unitPrice || ds['unit_price'],
+                image: ds.image || ds.imageUrl || ds.image_url,
+                quantity: ds.qty || ds.quantity || ds.count || 1
+            };
+        }
+        // if this is inside a .product-card, try to pull details from it
+        const card = el.closest ? el.closest('.product-card') : null;
+        if (card) {
+            const titleEl = card.querySelector('h3') || card.querySelector('.product-title') || card.querySelector('.title');
+            const imgEl = card.querySelector('img') || card.querySelector('.product-image-box img');
+            const priceEl = card.querySelector('.discounted-price') || card.querySelector('.price') || card.querySelector('.meta .price');
+            return {
+                id: card.getAttribute('data-id') || (titleEl ? titleEl.textContent.trim().replace(/\s+/g, '_') : ''),
+                title: titleEl ? titleEl.textContent.trim() : '',
+                brand: card.getAttribute('data-brand') || '',
+                price: priceEl ? parseFloat((priceEl.textContent || '').replace(/[^0-9.]/g, '')) : 0,
+                image: imgEl ? (imgEl.src || imgEl.getAttribute('data-src') || '') : ''
+            };
+        }
+        // fallback: no structured info
+        return null;
+    }
+
+    // Render a simple modal cart summary into #modalCartSummary if present
+    function populateModalCartSummary() {
+        const outEl = document.getElementById('modalCartSummary') || document.getElementById('modalCartSummary');
+        if (!outEl) return;
+        const cart = getCart() || [];
+        if (!cart.length) {
+            outEl.innerHTML = '<div class="small-muted">Your cart is empty.</div>';
+            return;
+        }
+        let html = `<table style="width:100%;border-collapse:collapse;">
+            <thead><tr><th style="text-align:left">Product</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Total</th></tr></thead><tbody>`;
+        let subtotal = 0;
+        cart.forEach(item => {
+            const qty = item.quantity || item.qty || 1;
+            const price = parseFloat(item.price || 0);
+            const itemTotal = price * qty;
+            subtotal += itemTotal;
+            html += `<tr>
+                <td style="padding:8px 6px;">
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <img src="${toStaticUrl(item.image || item.image_url || '')}" alt="${item.title || ''}" style="width:56px;height:56px;object-fit:contain;border-radius:6px;background:#fff;border:1px solid #eee;">
+                        <div>
+                            <div style="font-weight:600">${item.title || item.name || ''}</div>
+                            <div class="small-muted" style="font-size:13px">${item.brand || ''}</div>
+                        </div>
+                    </div>
+                </td>
+                <td style="text-align:center;">${qty}</td>
+                <td style="text-align:right;">$${itemTotal.toFixed(2)}</td>
+            </tr>`;
+        });
+        html += `</tbody>
+            <tfoot>
+                <tr class="total-row"><td></td><td style="font-weight:700;">Subtotal</td><td style="text-align:right;font-weight:700;">$${subtotal.toFixed(2)}</td></tr>
+                <tr class="total-row"><td></td><td style="font-weight:700;">Total</td><td style="text-align:right;color:#27ae60;font-weight:700;">$${subtotal.toFixed(2)}</td></tr>
+            </tfoot>
+        </table>`;
+        outEl.innerHTML = html;
+    }
+
+    // Open the shared checkout modal(s) used across templates
+    function openCheckoutModal() {
+        populateModalCartSummary();
+
+        // Common backdrop ids in templates
+        const backdropCandidates = ['checkoutBackdrop', 'checkoutModalBg', 'checkoutBackdrop', 'checkoutBackdrop', 'checkoutBackdrop'];
+        let shown = false;
+        backdropCandidates.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
                 try {
-                    const localCart = JSON.parse(localStorage.getItem('cart') || '[]');
-                    const id = prod.id || prod.title;
-                    const idx = localCart.findIndex(i => i.id === id);
-                    if (idx >= 0) localCart[idx].qty = (localCart[idx].qty || 1) + 1;
-                    else localCart.push({ ...prod, id: id, qty: 1 });
-                    localStorage.setItem('cart', JSON.stringify(localCart));
-                } catch (err) {
-                    console.warn('Fallback addToCart failed', err);
-                }
-                // navigate to cart page (fallback)
-                window.location.href = '/cart';
+                    el.style.display = 'flex';
+                    el.setAttribute('aria-hidden', 'false');
+                    el.style.alignItems = 'center';
+                    el.style.justifyContent = 'center';
+                    shown = true;
+                } catch (e) { /* ignore */ }
             }
+        });
+
+        if (!shown) {
+            // fallback to checkout page if no modal present
+            window.location.href = '/checkout';
+            return;
+        }
+
+        // NOTE: Payment rendering (PayPal / card buttons) is intentionally not performed here.
+        // That logic should live in the centralized checkout/cart/paypal pages.
+    }
+
+    // Attach Buy handlers to many possible selectors including listing "Buy" buttons.
+    function attachBuyNowHandler() {
+        const selectors = [
+            '#buyNowBtn',
+            '#addCartBtn',
+            '.cta-button.buy-now',
+            '.action-button.buy-now',
+            'button.buy-now',
+            '.buy-now',
+            '.buy',
+            '.btn-buy',
+            '.product-actions .buy-now'
+        ];
+
+        const nodes = selectors.reduce((acc, sel) => {
+            try {
+                document.querySelectorAll(sel).forEach(n => acc.push(n));
+            } catch (e) { /* ignore bad selectors */ }
+            return acc;
+        }, []);
+
+        const uniq = Array.from(new Set(nodes));
+
+        if (!uniq.length) {
+            const addCartCompat = document.getElementById('addCartBtn');
+            if (addCartCompat) {
+                addCartCompat.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    if (window.currentProduct) addProductObjectToCart(window.currentProduct, 1);
+                    openCheckoutModal();
+                });
+            }
+            return;
+        }
+
+        uniq.forEach(btn => {
+            if (btn.dataset && btn.dataset._buynowAttached === '1') return;
+            btn.dataset._buynowAttached = '1';
+            btn.addEventListener('click', function (e) {
+                try { e.preventDefault(); } catch (err) { /* ignore */ }
+                const el = e.currentTarget || this;
+
+                // Prefer structured data from the clicked element
+                const fromEl = extractProductFromElement(el);
+                if (fromEl) {
+                    // use any numeric dataset qty or default to 1
+                    const qty = parseInt(fromEl.quantity || fromEl.qty || el.dataset.qty || 1, 10) || 1;
+                    addProductObjectToCart(fromEl, qty);
+                } else if (window.currentProduct) {
+                    addProductObjectToCart(window.currentProduct, 1);
+                } else {
+                    // fallback: minimal product from DOM
+                    const prod = {
+                        id: document.getElementById('productName') ? document.getElementById('productName').textContent : (new Date().getTime()),
+                        title: document.getElementById('productName') ? document.getElementById('productName').textContent : 'Product',
+                        brand: document.getElementById('brandName') ? document.getElementById('brandName').textContent : '',
+                        price: (function () {
+                            const p = document.getElementById('productPrice');
+                            if (!p) return 0;
+                            const txt = p.textContent || '';
+                            const num = parseFloat(txt.replace(/[^0-9.]+/g, ''));
+                            return isNaN(num) ? 0 : num;
+                        })(),
+                        image: (document.getElementById('productImage') && document.getElementById('productImage').src) ? document.getElementById('productImage').src : ''
+                    };
+                    addProductObjectToCart(prod, 1);
+                }
+
+                // Open modal (payment handled in checkout/cart pages)
+                openCheckoutModal();
+            });
+        });
+    }
+
+    // (Optional) wishlist button: placeholder behavior (toggle visual only)
+    function attachWishlistToggle() {
+        const wishlistBtn = document.getElementById('wishlistBtn') || document.getElementById('productWishlistBtn');
+        if (!wishlistBtn) return;
+        wishlistBtn.addEventListener('click', function () {
+            wishlistBtn.classList.toggle('wish-added');
+            wishlistBtn.textContent = wishlistBtn.classList.contains('wish-added') ? '♥ Wishlist' : '♡ Wishlist';
+            try {
+                const list = JSON.parse(localStorage.getItem('wishlist') || '[]');
+                const pid = window.currentProduct ? (window.currentProduct.id || window.currentProduct.product_id || window.currentProduct.title) : (document.getElementById('productName') ? document.getElementById('productName').textContent : new Date().getTime());
+                const idx = list.findIndex(i => ('' + i.id) === ('' + pid));
+                if (idx >= 0) { list.splice(idx, 1); } else { list.push({ id: pid, title: (window.currentProduct && window.currentProduct.title) || (document.getElementById('productName') ? document.getElementById('productName').textContent : '') }); }
+                localStorage.setItem('wishlist', JSON.stringify(list));
+            } catch (e) { /* ignore */ }
         });
     }
 
@@ -252,15 +437,8 @@ document.addEventListener('DOMContentLoaded', function () {
             // Attach buy now handler now that we have productData
             attachBuyNowHandler();
 
-            // (Optional) wishlist button: placeholder behavior (toggle visual only)
-            const wishlistBtn = document.getElementById('buyNowBtn');
-            if (wishlistBtn) {
-                wishlistBtn.addEventListener('click', function () {
-                    wishlistBtn.classList.toggle('wish-added');
-                    wishlistBtn.textContent = wishlistBtn.classList.contains('wish-added') ? '♥ Wishlist' : '♡ Wishlist';
-                    // Persisting wishlist to localStorage/API can be added if you want.
-                });
-            }
+            // attach wishlist toggle if present (keeps a distinct wishlist button from buy-now)
+            attachWishlistToggle();
 
         } catch (err) {
             console.error('Failed to load product', err);

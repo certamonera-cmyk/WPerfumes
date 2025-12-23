@@ -1,6 +1,6 @@
 # WPerfumes E-Commerce Flask Application
 
-[Project repository](https://github.com/tulusehai-oss/WPerfumes)
+[Project repository](https://github.com/certamonera-cmyk/WPerfumes)
 
 ---
 Paypal
@@ -53,7 +53,7 @@ WPerfumes/
 1. **Clone the repository:**
 
    ```sh
-   git clone https://github.com/tulusehai-oss/WPerfumes.git
+   git clone https://github.com/certamonera-cmyk/WPerfumes.git
    cd WPerfumes
    ```
 
@@ -112,18 +112,18 @@ WPerfumes/
 ## GitHub Usage (for this repository)
 
 - All remote actions and project pushes should be to:  
-  `https://github.com/tulusehai-oss/WPerfumes.git`
+  `https://github.com/certamonera-cmyk/WPerfumes.git`
 
   Set your remote using:
   ```sh
-  git remote set-url origin https://github.com/tulusehai-oss/WPerfumes.git
+  git remote set-url origin https://github.com/certamonera-cmyk/WPerfumes.git
   ```
   Then push normally:
   ```sh
   git push origin master
   ```
 
-> **There are no longer any references to `cyrussimba` – all documentation, code, and badges should point to `tulusehai-oss` only.**
+> **All documentation, code, and badges should point to `certamonera-cmyk`.**
 
 ---
 
@@ -162,4 +162,4 @@ MIT License
 
 ## Author
 
-- [Makori](https://github.com/tulusehai-oss)
+- [certamonera-cmyk](https://github.com/certamonera-cmyk)

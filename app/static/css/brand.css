@@ -1,0 +1,502 @@
+/* Contents moved from brand.html inline <style>
+   All original CSS retained verbatim. */
+
+:root {
+    --light-brown: #d7ccc8;
+    --dark-text: #3e2723;
+    --light-silver: #e0e0e0;
+    --white-bg: #ffffff;
+    --dark-accent: #000000;
+    --footer-link-color: #5d4037;
+    --light-green: #c8e6c9;
+    --sale-red: #e53935;
+    --primary-white: #ffffff;
+
+    /* New button tokens to match brand_detail and provided image */
+    --cta-primary-bg: #2d8f7c;
+    /* teal/green used for Buy Now */
+    --cta-primary-hover: #277862;
+    --cta-primary-color: #ffffff;
+    --cta-secondary-bg: #f5f5f5;
+    /* light gray for Wishlist */
+    --cta-secondary-border: #e6e6e6;
+    --cta-secondary-color: #bdbdbd;
+    --btn-radius: 8px;
+    --btn-padding-sm: 8px 14px;
+    --btn-font-size: 0.95rem;
+    --btn-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+/* predictable sizing */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Georgia', serif;
+    background-color: var(--white-bg);
+    color: var(--dark-text);
+    margin: 0;
+}
+
+.navbar {
+    background-color: var(--light-brown);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid var(--light-silver);
+}
+
+.navbar-left {
+    display: flex;
+    align-items: center;
+}
+
+.brand-logo {
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--dark-text);
+    text-decoration: none;
+    letter-spacing: 1px;
+    margin-right: 30px;
+}
+
+.nav-tabs {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+}
+
+.nav-tabs li a {
+    text-decoration: none;
+    color: var(--dark-text);
+    padding: 10px 18px;
+    display: block;
+    border-radius: 4px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.nav-tabs li a:hover {
+    background-color: var(--light-green);
+    color: var(--dark-accent);
+}
+
+.navbar-center {
+    flex-grow: 1;
+    max-width: 450px;
+    margin: 0 20px;
+}
+
+.search-container input[type="text"] {
+    width: 100%;
+    padding: 8px 18px;
+    border: 1px solid var(--light-silver);
+    background-color: var(--light-silver);
+    border-radius: 20px;
+    outline: none;
+    font-size: 14px;
+    color: var(--dark-text);
+}
+
+.navbar-right {
+    display: flex;
+    align-items: center;
+}
+
+.content-container {
+    max-width: 1200px;
+    margin: 15px auto 15px auto !important;
+    padding: 0 10px !important;
+}
+
+h1#brandHeader {
+    font-size: 1.5em !important;
+    margin-bottom: 15px !important;
+    padding-bottom: 5px !important;
+}
+
+#brandDesc {
+    margin-bottom: 10px !important;
+    font-size: 1em !important;
+}
+
+.discount-info {
+    background: #f1c40f1a;
+    color: #b8860b;
+    border-radius: 4px;
+    padding: 7px 10px;
+    font-size: 1em;
+    font-weight: 500;
+    margin-bottom: 14px;
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+/* Product grid */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px !important;
+    grid-auto-rows: minmax(280px, auto);
+    align-items: start;
+    justify-items: stretch;
+}
+
+.product-card {
+    border: 1px solid var(--light-silver);
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s, box-shadow 0.3s;
+    background: #fff;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    padding-bottom: 14px;
+    /* extra space for CTAs */
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+.product-image-box {
+    width: 100%;
+    max-width: 120px;
+    aspect-ratio: 1/1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f9f9f9;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    position: relative;
+    padding: 6px;
+    flex: 0 0 auto;
+}
+
+.product-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 4px;
+    transition: transform 0.25s ease-in-out, box-shadow 0.25s;
+    transform-origin: center center;
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.product-card:hover .product-image-box img {
+    transform: scale(1.15);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+}
+
+.product-card a {
+    text-decoration: none;
+    color: var(--dark-text);
+    display: block;
+    position: relative;
+    z-index: 1;
+}
+
+.product-card h3 {
+    font-size: 1.05em;
+    margin: 6px 0 0;
+    position: relative;
+    z-index: 1;
+    color: var(--dark-text);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.15em;
+    max-height: 2.3em;
+    word-wrap: break-word;
+    margin-bottom: 6px;
+}
+
+.product-card .meta {
+    flex: 0 0 auto;
+    width: 100%;
+}
+
+.product-card .price {
+    font-weight: bold;
+    color: #cc0000;
+    margin-top: 4px;
+    display: block;
+    position: relative;
+    z-index: 1;
+    overflow-wrap: break-word;
+}
+
+.product-card .discounted-price {
+    font-weight: bold;
+    color: #27ae60;
+    font-size: 1.08em;
+    margin-top: 2px;
+    display: block;
+    position: relative;
+    z-index: 1;
+    overflow-wrap: break-word;
+}
+
+/*
+ * Product action buttons
+ * - Make the actions flex-wrap so they never overflow the card
+ * - Use flexible/bounded widths for buttons so they fit side-by-side where possible
+ * - Remove hard min-width that caused overflow, use min-width:0 so flex can shrink
+ */
+.product-card .product-actions {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    flex: 0 0 auto;
+    padding-top: 6px;
+    flex-wrap: wrap;
+    /* allow wrapping to avoid overflow */
+    box-sizing: border-box;
+}
+
+/* Generic action button (kept small and tidy) */
+.product-actions .action-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    /* use flexible basis so two buttons fit side-by-side, but allow shrinking */
+    flex: 0 1 calc(50% - 4px);
+    padding: 6px 8px;
+    font-size: 0.88rem;
+    cursor: pointer;
+    border-radius: var(--btn-radius);
+    transition: background-color 0.18s, transform 0.08s, color 0.18s;
+    /* allow the button text to wrap instead of overflowing or being cropped */
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    font-weight: 700;
+    box-shadow: none;
+    min-width: 0;
+    /* allow shrinking inside flex container */
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.1;
+}
+
+/* Primary buy-now button (teal, compact) */
+.product-actions .action-button.buy-now {
+    background: var(--cta-primary-bg);
+    color: var(--cta-primary-color);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: var(--btn-shadow);
+    padding: 7px 10px;
+    font-size: 0.82rem;
+    /* ensure icon + text won't push size beyond container; allow wrapping */
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.product-actions .action-button.buy-now:hover,
+.product-actions .action-button.buy-now:focus {
+    background: var(--cta-primary-hover);
+    transform: translateY(-1px);
+    outline: none;
+}
+
+/* Secondary wishlist button (subtle light box) */
+.product-actions .action-button.wishlist-btn {
+    background: var(--cta-secondary-bg);
+    color: var(--cta-secondary-color);
+    border: 1px solid var(--cta-secondary-border);
+    padding: 7px 10px;
+    font-size: 0.9rem;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.product-actions .action-button.wishlist-btn:hover,
+.product-actions .action-button.wishlist-btn:focus {
+    background: #efefef;
+    color: #9e9e9e;
+    transform: translateY(-1px);
+    outline: none;
+}
+
+/* Wishlist added state (filled heart) */
+.product-actions .action-button.wishlist-btn.wish-added {
+    background: #fff1f5;
+    border-color: #f48fb1;
+    color: #c2185b;
+}
+
+/* Responsive adjustments: stack buttons on small screens */
+@media (max-width: 600px) {
+    .product-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .product-actions .action-button {
+        width: 100%;
+        flex: 1 1 100%;
+        min-width: 0;
+        justify-content: center;
+    }
+}
+
+.sold-out {
+    color: red;
+    font-weight: bold;
+    margin-top: 5px;
+    display: block;
+    position: relative;
+    z-index: 1;
+    font-size: 0.95em;
+}
+
+.footer {
+    background-color: var(--light-brown);
+    color: var(--dark-text);
+    padding: 26px 12px 10px !important;
+    border-top: 1px solid var(--light-silver);
+}
+
+.footer-container {
+    display: flex;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: left;
+    flex-wrap: wrap;
+}
+
+.footer-section {
+    flex: 1;
+    min-width: 250px;
+    margin-bottom: 20px;
+}
+
+.footer-section h4 {
+    font-size: 18px;
+    margin-bottom: 15px;
+    color: var(--dark-accent);
+}
+
+.social-icons a {
+    font-size: 24px;
+    color: var(--dark-text);
+    text-decoration: none;
+    margin-right: 15px;
+    transition: color 0.3s;
+}
+
+.payment-methods {
+    margin-top: 20px;
+    font-size: 28px;
+}
+
+.payment-methods span {
+    margin-right: 10px;
+    color: var(--footer-link-color);
+}
+
+.footer-section p,
+.footer-section a {
+    color: var(--footer-link-color);
+    text-decoration: none;
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    transition: color 0.3s;
+}
+
+.footer-bottom {
+    text-align: center;
+    margin-top: 30px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(62, 39, 35, 0.1);
+    font-size: 12px;
+    color: var(--footer-link-color);
+}
+
+/* Modal styles retained below (unchanged) */
+.cart-modal-bg {
+    display: none;
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    width: 100vw;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 2000;
+}
+
+.cart-modal-content {
+    background: #fff;
+    width: 720px;
+    max-width: 96%;
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.25);
+    position: relative;
+}
+
+.cart-modal-close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    position: absolute;
+    right: 12px;
+    top: 10px;
+    cursor: pointer;
+}
+
+.small-muted {
+    font-size: 0.95em;
+    color: #666;
+}
+
+/* Button state styling so buttons visibly "grey out" when disabled */
+.btn-active {
+    box-shadow: 0 6px 18px rgba(45, 143, 124, 0.18);
+    transform: translateY(-2px);
+}
+
+.btn-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+    filter: grayscale(10%);
+    box-shadow: none !important;
+    transform: none !important;
+}

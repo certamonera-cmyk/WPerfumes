@@ -224,9 +224,7 @@
             <img id="mainImage" class="product-main-image" alt="Product image"
                 src="{{ url_for('static', filename='images/placeholder.jpg') }}">
             <div class="thumbs" id="thumbsContainer" aria-hidden="false"></div>
-
-            <!-- Small PayPal button placeholder (hidden by default; only shown when purchase starts) -->
-            <div id="product_paypal_button_container" style="margin-top:12px; display:none;"></div>
+            <!-- product-level payment UI removed: payments are handled in cart/checkout/paypal pages -->
         </section>
 
         <aside class="product-info" aria-label="Product information">
@@ -254,7 +252,8 @@
             </div>
 
             <div style="margin-top:12px;">
-                <div class="small-muted">Free returns within 14 days. Secure payments with PayPal and major cards.</div>
+                <div class="small-muted">Free returns within 14 days. Secure payments with PayPal and major cards
+                    (handled at checkout).</div>
             </div>
         </aside>
     </main>
@@ -288,13 +287,9 @@
             <h2>Checkout</h2>
             <div id="checkoutDiscountInfo" class="discount-info" style="display:none"></div>
             <div id="cartSection" aria-live="polite"></div>
-            <div id="paymentSelectWrapper" style="display:block;margin-top:12px;">
-                <label class="payment-dropdown-label">Select Payment Method</label>
-                <select id="paymentSelect" class="payment-select">
-                    <option>Cash on Delivery</option>
-                    <option>Visa/Mastercard</option>
-                </select>
-            </div>
+
+            <!-- Payment selection removed from product page. Payment controls and PayPal rendering
+                 should be implemented in cart.html / checkout.html / paypal.js. -->
 
             <form id="orderForm" style="margin-top:12px;">
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
@@ -314,12 +309,9 @@
                 <div id="orderMsg" style="margin-top:10px;"></div>
                 <div class="form-buttons" style="margin-top:12px;">
                     <button id="checkoutBtn" type="submit" class="btn btn-primary">Place Order</button>
-                    <button id="modalBuyNowBtn" type="button" class="btn btn-buy">Buy Now</button>
+                    <!-- modal Buy Now and modal PayPal container removed; payment handled in checkout/cart pages -->
                 </div>
             </form>
-
-            <!-- PayPal placeholder inside checkout modal -->
-            <div id="modal_paypal_button_container" style="margin-top:12px;"></div>
         </div>
     </div>
 
@@ -348,13 +340,7 @@
         <div class="footer-bottom">&copy; WPerfumes</div>
     </footer>
 
-    <!-- PayPal SDK (uses server-provided client id and currency) -->
-    <script
-        src="https://www.paypal.com/sdk/js?client-id={{ PAYPAL_CLIENT_ID }}&currency={{ PAYPAL_CURRENCY }}"></script>
-    <!-- Client PayPal helper that the rest of the app expects -->
-    <script src="{{ url_for('static', filename='js/paypal.js') }}"></script>
-
-    <!-- Shared site script (main.js) - this also wires up modals and cart UI -->
+    <!-- Shared site script (main.js) - this wires up modals and cart UI -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
     <script>
@@ -394,9 +380,6 @@
             const buyNowBtn = document.getElementById('buyNowBtn');
             const actionMsg = document.getElementById('productActionMsg');
             const suggestedTrack = document.getElementById('suggestedTrack');
-
-            // product-specific PayPal container
-            const productPayPalContainer = document.getElementById('product_paypal_button_container');
 
             let productData = null;
 
@@ -482,27 +465,6 @@
                 });
             }
 
-            // helper to show & render the product-paypal button area when needed
-            function showProductPayPalButtons() {
-                try {
-                    if (!productPayPalContainer) return;
-                    // only render if the helper exists
-                    if (typeof window.renderPayPalButtons === 'function') {
-                        // show container
-                        productPayPalContainer.style.display = 'block';
-                        // call the helper to render buttons into the container
-                        // keep args consistent with other uses in the app
-                        window.renderPayPalButtons('#product_paypal_button_container', { currency: '{{ PAYPAL_CURRENCY }}', successUrl: '/' });
-                    } else {
-                        // If no helper, the checkout modal will still render PayPal (modal_paypal_button_container)
-                        productPayPalContainer.style.display = 'none';
-                    }
-                } catch (err) {
-                    console.warn('Error rendering product PayPal buttons', err);
-                    productPayPalContainer.style.display = 'none';
-                }
-            }
-
             // add to cart behaviour
             addToCartBtn.addEventListener('click', function () {
                 const qty = Math.max(1, parseInt(qtyEl.value || '1', 10));
@@ -540,18 +502,10 @@
                 }
             });
 
-            // Buy Now: initiate PayPal card checkout for this single product (preferred)
+            // Buy Now: simplified behavior — add to cart and open checkout flow (payments handled in checkout)
             buyNowBtn.addEventListener('click', async function () {
                 const qty = Math.max(1, parseInt(qtyEl.value || '1', 10));
 
-                // If there's a product-specific PayPal flow available, show the product-level PayPal buttons
-                // and let the user continue there. This keeps the PayPal UI hidden until a purchase action occurs.
-                if (typeof window.renderPayPalButtons === 'function') {
-                    showProductPayPalButtons();
-                }
-
-                const customerObj = { name: '', email: '', phone: '', address: '' };
-                try { localStorage.setItem('paypal_customer', JSON.stringify(customerObj)); } catch (e) { }
                 const item = {
                     id: productData && productData.id ? productData.id : (productIdParam || productParam || (new Date()).getTime().toString()),
                     title: productData.title || productData.name || '',
@@ -559,43 +513,26 @@
                     quantity: qty,
                     currency: 'USD'
                 };
-                try { localStorage.setItem('paypal_items', JSON.stringify([item])); } catch (e) { }
 
-                // best-effort log
-                try {
-                    fetch(`${API}/order-attempts`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: '', product: item.title, qty: item.quantity, status: 'CheckedOut' })
-                    }).catch(() => { });
-                } catch (e) { }
+                // store single-item checkout info for checkout page if needed (non-blocking)
+                try { localStorage.setItem('pending_buy_item', JSON.stringify(item)); } catch (e) { }
 
-                actionMsg.textContent = 'Redirecting to payment…';
+                // add item to cart
+                let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+                const id = item.id;
+                const existing = cart.find(i => ('' + i.id) === ('' + id));
+                if (existing) existing.quantity = (existing.quantity || 0) + item.quantity;
+                else cart.push({ id, title: item.title, brand: productData.brand || '', price: item.unit_price, image: mainImage.src || '', quantity: item.quantity });
+                localStorage.setItem('cart', JSON.stringify(cart));
+
+                actionMsg.textContent = 'Proceed to checkout';
                 actionMsg.style.color = '#000';
 
-                if (typeof window.initiateCardCheckout === 'function') {
-                    try {
-                        await window.initiateCardCheckout([item], { currency: 'USD', returnUrl: window.location.origin + '/paypal/return' });
-                    } catch (err) {
-                        console.error('initiateCardCheckout error', err);
-                        const detail = (err && err.message) ? err.message : String(err);
-                        if (detail.toLowerCase().includes('401') || detail.toLowerCase().includes('unauthorized')) {
-                            actionMsg.innerHTML = '<span style="color:#e74c3c;">Payment provider credentials appear missing or invalid on the server. Check PAYPAL_CLIENT_ID and PAYPAL_SECRET on the server.</span>';
-                        } else {
-                            actionMsg.innerHTML = `<span style="color:#e74c3c;">Failed to start card (PayPal) checkout: ${detail}</span>`;
-                        }
-                        actionMsg.style.color = '#e74c3c';
-                    }
+                // open checkout modal or redirect to checkout page; actual payment UI lives on checkout/cart pages
+                if (typeof openCheckoutModal === 'function') {
+                    openCheckoutModal();
                 } else {
-                    // fallback: add to cart + open checkout modal (checkout modal contains the modal_paypal_button_container)
-                    let cart = JSON.parse(localStorage.getItem('cart') || '[]');
-                    const id = item.id;
-                    const existing = cart.find(i => ('' + i.id) === ('' + id));
-                    if (existing) existing.quantity = (existing.quantity || 0) + item.quantity;
-                    else cart.push({ id, title: item.title, brand: productData.brand || '', price: item.unit_price, image: mainImage.src || '', quantity: item.quantity });
-                    localStorage.setItem('cart', JSON.stringify(cart));
-                    actionMsg.textContent = 'Added to cart — proceed to checkout';
-                    if (typeof openCheckoutModal === 'function') openCheckoutModal();
+                    window.location.href = '/checkout';
                 }
             });
 
@@ -659,10 +596,9 @@
                 renderProduct(p);
                 loadSuggestions();
 
-                // NOTE: product-level PayPal button is intentionally NOT rendered automatically here.
-                // The product_paypal_button_container is hidden by default and will be shown only when
-                // the user takes a purchase action (for example clicking "Buy Now"). The checkout modal
-                // still contains modal_paypal_button_container which main.js/paypal.js will render as needed.
+                // NOTE: All payment rendering and card/PayPal integrations were intentionally removed
+                // from this product page and its JS. Payment UI should be implemented in cart.html,
+                // checkout.html and in the dedicated paypal.js helper so the checkout flow is centralized.
             })();
         })();
     </script>

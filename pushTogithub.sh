@@ -1,7 +1,7 @@
 set -euo pipefail
 
 # ----- CONFIG -----
-OWNER_REPO="uaemarati2032/WPerfumes"   # <owner>/<repo> - updated to uaemarati (removed cyrussimba)
+OWNER_REPO="certamonera-cmyk/WPerfumes"   # <owner>/<repo>
 ORIGIN_URL="https://github.com/${OWNER_REPO}.git"
 BRANCH="${BRANCH:-$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo master)}"
 FORCE_PUSH="${FORCE_PUSH:-false}"   # set to "true" to force push (dangerous)
@@ -26,7 +26,7 @@ cd "$REPO_ROOT"
 
 echo "Repository root: $REPO_ROOT"
 
-# Ensure origin is set to uaemarati repo (replace if different)
+# Ensure origin is set to the target repo (replace if different)
 if git remote | grep -q '^origin$'; then
   CURRENT_ORIGIN_URL="$(git remote get-url origin)"
   if [ "$CURRENT_ORIGIN_URL" != "$ORIGIN_URL" ]; then
@@ -125,7 +125,7 @@ if [ "$LOCAL_SHA" != "$REMOTE_SHA" ]; then
   exit 1
 fi
 
-echo "Push verified: commit $LOCAL_SHA is on origin/${BRANCH} (owner: uaemarati2032)."
+echo "Push verified: commit $LOCAL_SHA is on origin/${BRANCH} (owner: certamonera-cmyk)."
 
 # Optionally unset token for safety
 if [ -n "${GITHUB_TOKEN:-}" ]; then
