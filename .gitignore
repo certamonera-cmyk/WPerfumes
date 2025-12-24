@@ -21,3 +21,29 @@ wperfumes_backup_*.sql
 client-config.json
 paypal-oauth.json
 create-order.json
+# Python / env / build
+.venv/
+__pycache__/
+*.pyc
+
+# local instance artifacts
+instance/
+instance/*
+
+# IDE/editor
+.vscode/
+*.swp
+
+# Local debug/temp scripts we used (keep them local)
+preview_image_rows.py
+fix_static_prefix.py
+check_files_exist.py
+list_missing_images.py
+search_for_missing_sources.py
+test_conn.py
+export_backups.py
+restore_from_backup.py
+
+# OS
+.DS_Store
+Thumbs.db
