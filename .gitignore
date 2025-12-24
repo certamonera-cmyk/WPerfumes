@@ -47,3 +47,7 @@ restore_from_backup.py
 # OS
 .DS_Store
 Thumbs.db
+dev-scripts/
+/*.log
+copy_local_to_remote.log
+flask-debug.log
